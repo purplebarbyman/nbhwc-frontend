@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBHWC Study Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50E3C2;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --light-text-color: #777;
+            --border-color: #e0e0e0;
+            --success-color: #7ED321;
+            --error-color: #D0021B;
+            --achievement-color: #F5A623;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        #root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .loading-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: var(--light-text-color);
+        }
+
+        /* --- Header --- */
+        .app-header {
+            background-color: var(--card-background);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .main-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nav-button {
+            background: none;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--light-text-color);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .nav-button.active,.nav-button:hover {
+            color: var(--primary-color);
+            background-color: #e9f2fe;
+        }
+
+        .logout-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: #357abd;
+        }
+
+        /* --- Main Content --- */
+        main {
+            flex-grow: 1;
+            padding: 2rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .input-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        /* --- Dashboard Specific --- */
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .dashboard-header p {
+            color: var(--light-text-color);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            background-color: #e9f2fe;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-item .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-item .label {
+            font-size: 0.9rem;
+            color: var(--light-text-color);
+        }
+
+        .domain-item {
+            margin-bottom: 1rem;
+        }
+
+        .domain-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .domain-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .achievements-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .achievement-item {
+            font-size: 2.5rem;
+            cursor: pointer;
+        }
+        
+        .achievement-item.locked {
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        /* --- Study Plan Specific --- */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .timeline-day {
+            background-color: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .timeline-day h3 {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-item i {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+        }
+
+        .task-details {
+            flex-grow: 1;
+        }
+
+        .task-details .task-name {
+            font-weight: 600;
+        }
+
+        .task-details .task-time {
+            font-size: 0.9rem;
+            color: var(--light-text-color);
+        }
+        
+        .quiz-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        
+        .quiz-button:hover {
+            background-color: #357abd;
+        }
+
+        /* --- Quiz, Scenario, Flashcard, Puzzle, Challenge Specific --- */
+        .interactive-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-background);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .interactive-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .interactive-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+        
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .prompt-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .option-button {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            text-align: left;
+            background-color: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-button:hover {
+            border-color: var(--primary-color);
+        }
+
+        .option-button.selected {
+            background-color: #e9f2fe;
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .option-button.correct {
+            background-color: #e4f8d3;
+            border-color: var(--success-color);
+        }
+        
+        .option-button.incorrect {
+            background-color: #f9d7db;
+            border-color: var(--error-color);
+        }
+
+        .interactive-footer {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .interactive-results {
+            text-align: center;
+        }
+        
+        .interactive-results h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .interactive-results p {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+        
+        .interactive-results .score {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--success-color);
+        }
+
+        .submit-button {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .submit-button:not(:disabled):hover {
+            background-color: #6ab71c;
+        }
+
+        .feedback {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .feedback.correct {
+            background-color: #e4f8d3;
+            color: #4a7d1c;
+        }
+
+        .feedback.incorrect {
+            background-color: #f9d7db;
+            color: #a30215;
+        }
+        
+        .explanation-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        
+        .explanation-box h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .explanation-box p {
+            color: var(--text-color);
+        }
+        
+        .eli5-box {
+            background-color: #e9f2fe;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+        }
+        
+        .explanation-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .eli5-button {
+            background-color: #d1e3f9;
+            color: #357abd;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .report-link {
+            font-size: 0.9rem;
+            color: var(--light-text-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .report-link:hover {
+            color: var(--error-color);
+        }
+        
+        /* --- Flashcard & Puzzle Specific --- */
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 300px;
+            cursor: pointer;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard-container.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-background);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+        .flashcard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        .matching-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .match-item, .puzzle-item {
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.2s;
+            text-align: center;
+            background-color: var(--card-background);
+            font-weight: 600;
+        }
+        .match-item:hover, .puzzle-item:hover {
+            border-color: var(--primary-color);
+        }
+        .match-item.selected {
+            border-color: var(--primary-color);
+            background-color: #e9f2fe;
+        }
+        .match-item.matched {
+            border-color: var(--success-color);
+            background-color: #e4f8d3;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .match-item.incorrect, .puzzle-item.incorrect {
+            border-color: var(--error-color);
+            background-color: #f9d7db;
+            animation: shake 0.5s;
+        }
+        .puzzle-item.correct {
+            border-color: var(--success-color);
+            background-color: #e4f8d3;
+        }
+        .puzzle-item.dragging {
+            opacity: 0.5;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* --- Achievement Notification --- */
+        .achievement-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--achievement-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            animation: slide-in 0.5s ease-out;
+        }
+        
+        @keyframes slide-in {
+            from {
+                bottom: -100px;
+                opacity: 0;
+            }
+            to {
+                bottom: 20px;
+                opacity: 1;
+            }
+        }
+        
+        .achievement-notification i {
+            font-size: 2rem;
+        }
+        
+        .achievement-notification .title {
+            font-weight: 700;
+        }
+        
+        .achievement-notification .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .achievement-notification .close-btn:hover {
+            opacity: 1;
+        }
+
+
+        /* --- Login Page --- */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 2rem;
+        }
+
+        .login-form-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-background);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .login-form-container h1 {
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .login-form-container p {
+            margin-bottom: 2rem;
+            color: var(--light-text-color);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .login-button:hover {
+            background-color: #357abd;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+           .app-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            main {
+                padding: 1rem;
+            }
+           .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        // api.js
+        const apiClient = {
+            baseUrl: 'https://google-page.onrender.com/api', // <-- YOUR LIVE BACKEND URL
+            
+            async request(endpoint, method = 'GET', data = null) {
+                const url = `${this.baseUrl}${endpoint}`;
+                const token = localStorage.getItem('authToken');
+                
+                const headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                if (token) {
+                    headers.append('Authorization', `Bearer ${token}`);
+                }
+
+                const config = { method, headers };
+                if (data) config.body = JSON.stringify(data);
+
+                try {
+                    const response = await fetch(url, config);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }
+                    if (response.status === 204) return;
+                    return response.json();
+                } catch (error) {
+                    console.error('API Client Error:', error);
+                    throw error;
+                }
+            },
+
+            login: (credentials) => apiClient.request('/auth/login', 'POST', credentials),
+            register: (userData) => apiClient.request('/auth/register', 'POST', userData),
+            getUserData: () => apiClient.request('/user/data', 'GET'),
+        };
+        
+        // This mockApi remains for features not yet built on the backend.
+        const mockApi = {
+            recordQuizCompletion: (topic, score, correctAnswers, totalQuestions) => new Promise(resolve => {
+                const today = new Date().toISOString().split('T')[0];
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                
+                const pointsEarned = (correctAnswers * 10) + (score === 100 ? 50 : 0);
+                window.userData.stats.points += pointsEarned;
+                
+                if (window.userData.stats.last_study_date !== today) {
+                    if (window.userData.stats.last_study_date === yesterday) {
+                        window.userData.stats.streak += 1;
+                    } else {
+                        window.userData.stats.streak = 1;
+                    }
+                    window.userData.stats.last_study_date = today;
+                }
+                
+                const currentMastery = window.userData.mastery[topic] || 50;
+                const newMastery = Math.min(100, Math.round(currentMastery + (score / 100 * 15)));
+                window.userData.mastery[topic] = newMastery;
+                
+                const newlyUnlocked = [];
+                const allAchievements = mockApi.getAchievements();
+                
+                allAchievements.forEach(ach => {
+                    if (!window.userData.unlockedAchievements.includes(ach.id)) {
+                        let unlocked = false;
+                        if (ach.type === 'streak' && window.userData.stats.streak >= ach.value) unlocked = true;
+                        if (ach.type === 'mastery' && newMastery >= ach.value) unlocked = true;
+                        if (unlocked) {
+                            window.userData.unlockedAchievements.push(ach.id);
+                            newlyUnlocked.push(ach);
+                        }
+                    }
+                });
+                
+                setTimeout(() => resolve({ 
+                    success: true, 
+                    newStats: window.userData.stats, 
+                    newMastery: window.userData.mastery, 
+                    newlyUnlocked 
+                }), 400);
+            }),
+            
+            generatePersonalizedPlan: ({ examDate, hoursPerWeek, userMastery }) => new Promise(resolve => {
+                 const topicTimeEstimates = {
+                    'Motivational Interviewing': 120, 'SMART Goals': 90, 'HIPAA Basics': 150,
+                    'Coaching Structure': 60, 'Coaching Process': 60, 'Health & Wellness': 60,
+                    'Ethics, Legal & Professional Responsibility': 60
+                };
+
+                const topicsToStudy = Object.keys(topicTimeEstimates)
+                    .map(topic => ({ topic, timeNeeded: topicTimeEstimates[topic] * (1 - (userMastery[topic] || 0) / 100) }))
+                    .filter(t => t.timeNeeded > 0)
+                    .sort((a, b) => (userMastery[a.topic] || 0) - (userMastery[b.topic] || 0));
+
+                const dailyMinutesAvailable = (hoursPerWeek / 7) * 60;
+                const plan = {};
+                let currentDate = new Date();
+                let topicIndex = 0;
+
+                while (topicIndex < topicsToStudy.length) {
+                    const dateString = currentDate.toISOString().split('T')[0];
+                    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                        plan[dateString] = [];
+                        let minutesForDay = 0;
+                        while (minutesForDay < dailyMinutesAvailable && topicIndex < topicsToStudy.length) {
+                            const currentTopic = topicsToStudy[topicIndex];
+                            const timeToAllocate = Math.min(currentTopic.timeNeeded, dailyMinutesAvailable - minutesForDay, 60);
+                            
+                            plan[dateString].push({
+                                type: 'quiz', name: `Practice: ${currentTopic.topic}`,
+                                time: `${Math.round(timeToAllocate)} min`, topic: currentTopic.topic
+                            });
+                            
+                            minutesForDay += timeToAllocate;
+                            currentTopic.timeNeeded -= timeToAllocate;
+                            if (currentTopic.timeNeeded <= 0) topicIndex++;
+                        }
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (currentDate > new Date(examDate)) break;
+                }
+                
+                window.userData.planSettings = { examDate, hoursPerWeek };
+                window.userData.personalizedPlan = plan;
+                setTimeout(() => resolve(plan), 1000);
+            }),
+            
+            getTodaysFocusTopic: (userMastery) => new Promise(resolve => {
+                const studiableTopics = [
+                    'Motivational Interviewing', 'SMART Goals', 'HIPAA Basics', 'Coaching Structure', 
+                    'Coaching Process', 'Health & Wellness', 'Ethics, Legal & Professional Responsibility'
+                ];
+                let lowestTopic = null, lowestScore = 101;
+                studiableTopics.forEach(topic => {
+                    const score = userMastery[topic] || 0;
+                    if (score < lowestScore) {
+                        lowestScore = score;
+                        lowestTopic = topic;
+                    }
+                });
+                setTimeout(() => resolve(lowestTopic), 200);
+            }),
+            
+            getAchievements: () => ([
+                { id: 'FIRST_QUIZ', name: 'Quizzer', description: 'Complete your first quiz.', icon: 'fa-solid fa-medal', type: 'quiz', value: 1 },
+                { id: 'STREAK_3', name: 'On a Roll', description: 'Maintain a 3-day study streak.', icon: 'fa-solid fa-fire', type: 'streak', value: 3 },
+                { id: 'MASTER_MI', name: 'MI Maestro', description: 'Achieve 90% mastery in Motivational Interviewing.', icon: 'fa-solid fa-comments', type: 'mastery', value: 90, topic: 'Motivational Interviewing' }
+            ]),
+
+            reportQuestion: (questionId, reason) => new Promise(resolve => {
+                console.log(`Reported Q:${questionId} for: ${reason}`);
+                setTimeout(() => resolve({ success: true }), 500);
+            }),
+
+            getAdaptiveQuizQuestions: (topic, userMastery) => new Promise(resolve => {
+                const allQuestions = {
+                    'Motivational Interviewing': [
+                        { id: 1, question: "Which is a core principle of MI?", options: ["Expressing empathy", "Giving advice"], answer: "Expressing empathy", difficulty: 'easy', explanation: "Expressing empathy involves seeing the world from the client's perspective and communicating that understanding. It's foundational to building trust and is a core part of the MI spirit.", eli5: "It means showing you understand how someone feels, like saying 'that sounds really tough' instead of just telling them what to do." },
+                        { id: 2, question: "What is 'rolling with resistance'?", options: ["Arguing with the client", "Accepting client's reluctance"], answer: "Accepting client's reluctance", difficulty: 'medium', explanation: "Resistance is a signal to change strategies. Instead of confronting it, the coach 'rolls with it,' acknowledging the client's perspective without judgment to avoid a power struggle.", eli5: "Instead of fighting when someone says 'I can't,' you say 'Okay, let's talk about that.' You don't push back." },
+                    ],
+                    'SMART Goals': [
+                        { id: 5, question: "What does 'S' in SMART stand for?", options: ["Specific", "Simple"], answer: "Specific", difficulty: 'easy', explanation: "A specific goal has a much greater chance of being accomplished than a general goal. It answers the questions: Who? What? Where? When? Why?", eli5: "Instead of 'be healthier,' you say exactly *what* you'll do, like 'eat one apple every day.'" },
+                    ],
+                    'HIPAA Basics': [
+                        { id: 8, question: "What does HIPAA stand for?", options: ["Health Info Portability & Accountability Act", "Health Insurance Privacy & Access Act"], answer: "Health Info Portability & Accountability Act", difficulty: 'medium', explanation: "HIPAA is the Health Insurance Portability and Accountability Act of 1996. It's a federal law that required the creation of national standards to protect sensitive patient health information.", eli5: "It's the big law that says doctors and others have to keep your health info super private." },
+                    ]
+                };
+                const topicQuestions = allQuestions[topic] || [];
+                const masteryScore = userMastery[topic] || 0;
+                let selectedQuestions = masteryScore > 75 ? topicQuestions.sort((a,b) => (a.difficulty === 'hard' ? -1 : 1)) : topicQuestions.sort((a,b) => (a.difficulty === 'easy' ? -1 : 1));
+                setTimeout(() => resolve(selectedQuestions.slice(0, 3)), 600);
+            }),
+            
+            getScenario: (id) => new Promise(resolve => {
+                const scenarios = {
+                    1: {
+                        title: "Handling Client Resistance",
+                        startNode: 'start',
+                        nodes: {
+                            'start': { prompt: "Your client, Sarah, seems unmotivated. She says, 'I know I should exercise, but I just don't feel like it. I failed again this week.' What's your first response?", choices: [ { text: "Don't worry, you can try again next week. What's your plan?", nextNode: 'reassurance' }, { text: "It sounds like you're feeling discouraged because your actions aren't aligning with your goals.", nextNode: 'reflection' }, { text: "Why do you think you failed? You need to be more disciplined.", nextNode: 'confrontation' } ] },
+                            'reassurance': { prompt: "Sarah replies, 'I guess so.' She still seems disengaged. This response was okay, but it glossed over her feelings. What's a better approach?", choices: [ { text: "Let's explore that feeling of discouragement a bit more.", nextNode: 'reflection' }, { text: "Okay, let's make a more detailed plan for next week.", nextNode: 'end_neutral' } ] },
+                            'reflection': { prompt: "Sarah's posture changes. 'Yes, that's exactly it! I feel like a failure.' You've successfully reflected her feelings, building trust. What's your next step?", choices: [ { text: "What would it feel like to get just one small win this week?", nextNode: 'end_positive' }, { text: "Tell me about the last time you did feel successful with your fitness.", nextNode: 'end_positive' } ] },
+                            'confrontation': { prompt: "Sarah becomes defensive. 'It's not about discipline, I'm just tired.' This confrontational style has damaged rapport. The scenario ends here.", choices: [], end: "This approach created conflict. A core coaching skill is to avoid judgment and roll with resistance." },
+                            'end_positive': { prompt: "You've successfully navigated the conversation, building rapport and opening the door for productive goal-setting. Excellent work!", choices: [], end: "You used reflective listening to validate the client's feelings, which is a key coaching competency." },
+                            'end_neutral': { prompt: "You've moved on, but missed a key opportunity to connect with the client's emotional state. The scenario ends here.", choices: [], end: "While not a bad outcome, exploring the client's feelings first would have been more effective." }
+                        }
+                    }
+                };
+                setTimeout(() => resolve(scenarios[id]), 500);
+            }),
+            
+            getFlashcardDecks: () => new Promise(resolve => {
+                setTimeout(() => resolve([
+                    { id: 'mi', name: 'Motivational Interviewing' },
+                    { id: 'smart', name: 'SMART Goals' },
+                    { id: 'ethics', name: 'Core Ethics' }
+                ]), 200);
+            }),
+            
+            getFlashcards: (deckId) => new Promise(resolve => {
+                const allCards = {
+                    'mi': [
+                        { id: 1, term: 'Empathy', definition: 'The ability to understand and share the feelings of another from their perspective.' },
+                        { id: 2, term: 'Change Talk', definition: 'Any self-expressed language that is an argument for change.' },
+                        { id: 3, term: 'Rolling with Resistance', definition: 'A strategy of not directly opposing client resistance but rather flowing with it.' },
+                    ],
+                    'smart': [
+                        { id: 4, term: 'Specific', definition: 'The goal is clear and unambiguous, answering who, what, where, and why.' },
+                        { id: 5, term: 'Measurable', definition: 'The goal has concrete criteria for tracking progress.' },
+                        { id: 6, term: 'Achievable', definition: 'The goal is realistic and attainable for the individual.' },
+                    ],
+                    'ethics': [
+                        { id: 9, term: 'Confidentiality', definition: 'The ethical duty to keep client information private.' },
+                        { id: 10, term: 'Scope of Practice', definition: 'The procedures, actions, and processes that a professional is permitted to undertake in keeping with the terms of their professional license or certification.' },
+                    ]
+                };
+                setTimeout(() => resolve(allCards[deckId] || []), 400);
+            }),
+            
+            getCoachingProcessPuzzle: () => new Promise(resolve => {
+                const puzzle = {
+                    title: 'The Coaching Session Flow',
+                    correctOrder: ['Establish Trust & Rapport', 'Create Coaching Agreement', 'Explore Client\'s Vision & Goals', 'Co-create Action Plan', 'Manage Progress & Accountability'],
+                    items: ['Explore Client\'s Vision & Goals', 'Manage Progress & Accountability', 'Establish Trust & Rapport', 'Co-create Action Plan', 'Create Coaching Agreement']
+                };
+                setTimeout(() => resolve(puzzle), 300);
+            }),
+            
+            getChallengeQuestions: (topic) => new Promise(resolve => {
+                const allQuestions = {
+                    'Motivational Interviewing': [
+                        { id: 1, question: "Core MI principle?", options: ["Empathy", "Advice"], answer: "Empathy" },
+                        { id: 2, question: "What is 'rolling with resistance'?", options: ["Arguing", "Accepting reluctance"], answer: "Accepting reluctance" },
+                        { id: 3, question: "Change talk comes from the...", options: ["Coach", "Client"], answer: "Client" },
+                        { id: 4, question: "'D' in DARN CAT?", options: ["Desire", "Decision"], answer: "Desire" },
+                        { id: 12, question: "OARS stands for Open questions, Affirmations, Reflections, and...?", options: ["Summaries", "Solutions"], answer: "Summaries" },
+                    ],
+                    'SMART Goals': [
+                        { id: 5, question: "'S' in SMART?", options: ["Specific", "Simple"], answer: "Specific" },
+                        { id: 6, question: "Most 'Measurable' goal?", options: ["'Exercise more'", "'Walk 3x/week'"], answer: "'Walk 3x/week'" },
+                        { id: 7, question: "'T' in SMART?", options: ["Time-bound", "Truthful"], answer: "Time-bound" },
+                        { id: 13, question: "'A' in SMART?", options: ["Achievable", "Ambitious"], answer: "Achievable" },
+                        { id: 14, question: "'R' in SMART?", options: ["Relevant", "Realistic"], answer: "Relevant" },
+                    ],
+                    'HIPAA Basics': [
+                        { id: 8, question: "HIPAA stands for?", options: ["Health Info Portability & Accountability Act", "Health Insurance Privacy & Access Act"], answer: "Health Info Portability & Accountability Act" },
+                        { id: 9, question: "Which is PHI?", options: ["Client's name", "Public data"], answer: "Client's name" },
+                        { id: 10, question: "Share info without consent?", options: ["If it helps", "No"], answer: "No" },
+                        { id: 11, question: "Business associates must...?", options: ["Protect PHI", "Ignore PHI"], answer: "Protect PHI" },
+                    ]
+                };
+                setTimeout(() => resolve(allQuestions[topic] || []), 100);
+            }),
+
+            taskIcons: {
+                read: "fa-solid fa-book-open",
+                video: "fa-solid fa-video",
+                quiz: "fa-solid fa-pen-to-square",
+                flashcards: "fa-solid fa-layer-group",
+                interactive: "fa-solid fa-comments"
+            }
+        };
+
+        // components/LoadingIndicator.js
+        const LoadingIndicator = () => (
+            <div className="loading-indicator">
+                <i className="fa-solid fa-spinner fa-spin"></i>
+                <span style={{marginLeft: '10px'}}>Loading...</span>
+            </div>
+        );
+
+        // components/AchievementNotification.js
+        const AchievementNotification = ({ achievement, onClose }) => {
+            if (!achievement) return null;
+            React.useEffect(() => {
+                const timer = setTimeout(onClose, 5000);
+                return () => clearTimeout(timer);
+            }, [achievement]);
+            return (
+                <div className="achievement-notification">
+                    <i className={achievement.icon}></i>
+                    <div>
+                        <div className="title">Achievement Unlocked!</div>
+                        <div>{achievement.name}</div>
+                    </div>
+                    <button onClick={onClose} className="close-btn">&times;</button>
+                </div>
+            );
+        };
+
+        // components/Header.js
+        const Header = ({ activePage, onNavClick, onLogout }) => {
+            return (
+                <header className="app-header">
+                    <div className="logo">
+                        <i className="fa-solid fa-brain"></i>
+                        NBHWC Prep
+                    </div>
+                    <nav className="main-nav">
+                        <button className={`nav-button ${activePage === 'dashboard' ? 'active' : ''}`} onClick={() => onNavClick('dashboard')}>Dashboard</button>
+                        <button className={`nav-button ${activePage === 'plan' ? 'active' : ''}`} onClick={() => onNavClick('plan')}>Study Plan</button>
+                        <button className={`nav-button ${activePage === 'scenarios' ? 'active' : ''}`} onClick={() => onNavClick('scenarios')}>Scenarios</button>
+                        <button className={`nav-button ${activePage === 'flashcards' ? 'active' : ''}`} onClick={() => onNavClick('flashcards')}>Flashcards</button>
+                        <button className={`nav-button ${activePage === 'puzzle' ? 'active' : ''}`} onClick={() => onNavClick('puzzle')}>Process Puzzle</button>
+                        <button className={`nav-button ${activePage === 'challenge' ? 'active' : ''}`} onClick={() => onNavClick('challenge')}>Challenge</button>
+                    </nav>
+                    <button className="logout-button" onClick={onLogout}>Logout</button>
+                </header>
+            );
+        };
+
+
+        // components/Dashboard.js
+        const Dashboard = ({ userData, onStartQuiz }) => {
+            const { stats, mastery, unlockedAchievements } = userData;
+            const [focusTopic, setFocusTopic] = React.useState(null);
+            
+            React.useEffect(() => {
+                if(mastery) {
+                    mockApi.getTodaysFocusTopic(mastery).then(setFocusTopic);
+                }
+            }, [mastery]);
+            
+            const domainMapping = {
+                'Coaching Structure': ['Coaching Structure', 'SMART Goals'],
+                'Coaching Process': ['Motivational Interviewing'],
+                'Health & Wellness': ['Health & Wellness'],
+                'Ethics, Legal & Professional Responsibility': ['HIPAA Basics', 'Ethics, Legal & Professional Responsibility']
+            };
+
+            const calculateDomainProgress = () => {
+                if (!mastery) return [];
+                return Object.entries(domainMapping).map(([domainName, topics]) => {
+                    const topicScores = topics.map(topic => mastery[topic] || 0);
+                    const average = topicScores.reduce((a, b) => a + b, 0) / topicScores.length;
+                    return { name: domainName, progress: Math.round(average) };
+                });
+            };
+
+            const domains = calculateDomainProgress();
+            const allAchievements = mockApi.getAchievements();
+
+            return (
+                <div className="dashboard-container">
+                    <div className="dashboard-header">
+                        <h1>Welcome Back, Coach!</h1>
+                        <p>Let's continue your journey to certification. Here's your progress at a glance.</p>
+                    </div>
+
+                    <div className="stats-grid">
+                        <div className="stat-item"><div className="value">{stats.points.toLocaleString()}</div><div className="label">Points</div></div>
+                        <div className="stat-item"><div className="value">{stats.current_streak} <i className="fa-solid fa-fire" style={{color: '#ff9800'}}></i></div><div className="label">Day Streak</div></div>
+                        <div className="stat-item"><div className="value">{stats.level}</div><div className="label">Level</div></div>
+                        <div className="stat-item"><div className="value">{stats.readiness}%</div><div className="label">Exam Readiness</div></div>
+                    </div>
+
+                    <div className="grid-container">
+                        <div className="card">
+                            <h2 className="card-title"><i className="fa-solid fa-chart-pie"></i>Domain Mastery</h2>
+                            {domains.map(domain => (
+                                <div key={domain.name} className="domain-item">
+                                    <div className="domain-info"><span>{domain.name}</span><span>{domain.progress}%</span></div>
+                                    <div className="progress-bar"><div className="progress-bar-inner" style={{width: `${domain.progress}%`}}></div></div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="card">
+                            <h2 className="card-title"><i className="fa-solid fa-bullseye"></i>Today's Focus</h2>
+                            {focusTopic ? (
+                                <><p>Based on your performance, we recommend focusing on:</p>
+                                <h3 style={{color: 'var(--primary-color)', margin: '1rem 0'}}>{focusTopic}</h3>
+                                <button className="quiz-button" onClick={() => onStartQuiz(focusTopic)}>Start Quiz</button></>
+                            ) : <LoadingIndicator />}
+                        </div>
+                        <div className="card">
+                            <h2 className="card-title"><i className="fa-solid fa-trophy"></i>Achievements</h2>
+                            <div className="achievements-grid">
+                               {allAchievements.map(ach => (
+                                   <div key={ach.id} className={`achievement-item ${unlockedAchievements.includes(ach.id) ? '' : 'locked'}`}
+                                     title={`${ach.name} - ${ach.description}`}>
+                                       <i className={ach.icon}></i>
+                                   </div>
+                               ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // components/StudyPlan.js
+        const StudyPlan = ({ plan, onStartQuiz, onRegenerate }) => {
+            return (
+                <div className="study-plan-container">
+                    <div className="dashboard-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div><h1>Your Personalized Study Plan</h1><p>Here is your adaptive schedule to keep you on track.</p></div>
+                        <button className="quiz-button" onClick={onRegenerate}>Change Settings</button>
+                    </div>
+                    <div className="timeline">
+                        {Object.keys(plan).length > 0 ? Object.entries(plan).map(([day, tasks]) => (
+                            <div key={day} className="timeline-day">
+                                <h3>{new Date(day + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
+                                <ul className="task-list">
+                                    {tasks.map(task => (
+                                        <li key={task.name} className="task-item">
+                                            <i className={mockApi.taskIcons[task.type]}></i>
+                                            <div className="task-details"><div className="task-name">{task.name}</div><div className="task-time">{task.time}</div></div>
+                                            {task.type === 'quiz' && (<button className="quiz-button" onClick={() => onStartQuiz(task.topic)}>Take Quiz</button>)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )) : <p>Your plan is complete! Great job.</p>}
+                    </div>
+                </div>
+            );
+        };
+        
+        // components/PlanSetup.js
+        const PlanSetup = ({ userMastery, onPlanGenerated }) => {
+            const [examDate, setExamDate] = React.useState('');
+            const [hoursPerWeek, setHoursPerWeek] = React.useState(5);
+            const [loading, setLoading] = React.useState(false);
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                const plan = await mockApi.generatePersonalizedPlan({ examDate, hoursPerWeek, userMastery });
+                onPlanGenerated(plan);
+                setLoading(false);
+            };
+            
+            return (
+                <div className="interactive-container">
+                    <div className="interactive-header"><h2>Create Your Study Plan</h2><p>Tell us your goals, and we'll build a custom timeline for you.</p></div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="input-group"><label htmlFor="examDate">Target Exam Date</label><input type="date" id="examDate" value={examDate} onChange={(e) => setExamDate(e.target.value)} required /></div>
+                        <div className="input-group"><label htmlFor="hoursPerWeek">Study Hours Per Week</label><input type="number" id="hoursPerWeek" value={hoursPerWeek} onChange={(e) => setHoursPerWeek(e.target.value)} min="1" max="40" required /></div>
+                        <button type="submit" className="submit-button" disabled={loading}>{loading ? 'Generating...' : 'Create My Plan'}</button>
+                    </form>
+                </div>
+            );
+        };
+
+
+        // components/Quiz.js
+        const Quiz = ({ topic, userMastery, onQuizComplete }) => {
+            const [questions, setQuestions] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+            const [selectedOption, setSelectedOption] = React.useState(null);
+            const [feedback, setFeedback] = React.useState(null);
+            const [isAnswered, setIsAnswered] = React.useState(false);
+            const [quizFinished, setQuizFinished] = React.useState(false);
+            const [score, setScore] = React.useState(0);
+            const [showEli5, setShowEli5] = React.useState(false);
+
+            React.useEffect(() => {
+                const fetchQuestions = async () => {
+                    setLoading(true);
+                    const quizQuestions = await mockApi.getAdaptiveQuizQuestions(topic, userMastery);
+                    setQuestions(quizQuestions);
+                    setLoading(false);
+                };
+                fetchQuestions();
+            }, [topic]);
+            
+            if (loading) return <LoadingIndicator />;
+            if (questions.length === 0) return <div>No questions available for this topic.</div>;
+            
+            if (quizFinished) {
+                return (
+                    <div className="interactive-container interactive-results">
+                        <h2>Quiz Complete!</h2><p>You answered {score} out of {questions.length} questions correctly.</p>
+                        <div className="score">{Math.round((score / questions.length) * 100)}%</div>
+                        <button className="submit-button" style={{marginTop: '2rem'}} onClick={() => onQuizComplete(topic, score, questions.length)}>Finish</button>
+                    </div>
+                );
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const handleOptionSelect = (option) => { if (!isAnswered) setSelectedOption(option); };
+            const handleSubmit = () => {
+                setIsAnswered(true);
+                if (selectedOption === currentQuestion.answer) {
+                    setFeedback({ type: 'correct', text: 'Correct! Great job.' });
+                    setScore(prev => prev + 1);
+                } else {
+                    setFeedback({ type: 'incorrect', text: `Not quite. The correct answer is: ${currentQuestion.answer}` });
+                }
+            };
+            const handleNextQuestion = () => {
+                if (currentQuestionIndex < questions.length - 1) {
+                    setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+                    setSelectedOption(null); setFeedback(null); setIsAnswered(false); setShowEli5(false);
+                } else {
+                    setQuizFinished(true);
+                }
+            };
+            const handleReportQuestion = (questionId) => {
+                const reason = prompt("Please describe the issue with this question:");
+                if (reason) mockApi.reportQuestion(questionId, reason).then(() => alert("Thank you! Your report has been submitted."));
+            };
+
+            return (
+                <div className="interactive-container">
+                    <div className="interactive-header"><h2>{topic} Quiz</h2><p>Question {currentQuestionIndex + 1} of {questions.length}</p></div>
+                    <p className="prompt-text">{currentQuestion.question}</p>
+                    <div className="options-grid">
+                        {currentQuestion.options.map((option, index) => (
+                            <button key={index} className={`option-button ${selectedOption === option ? 'selected' : ''}`} onClick={() => handleOptionSelect(option)} disabled={isAnswered}>{option}</button>
+                        ))}
+                    </div>
+                    <div className="interactive-footer">
+                        {!isAnswered ? (
+                            <button className="submit-button" onClick={handleSubmit} disabled={!selectedOption}>Submit Answer</button>
+                        ) : (
+                            <div>
+                                <div className={`feedback ${feedback.type}`}>{feedback.text}</div>
+                                <div className="explanation-box">
+                                    <h4>Explanation</h4><p>{currentQuestion.explanation}</p>
+                                    {showEli5 && (<div className="eli5-box"><p><strong>In simple terms:</strong> {currentQuestion.eli5}</p></div>)}
+                                    <div className="explanation-actions">
+                                        <button className="eli5-button" onClick={() => setShowEli5(!showEli5)}>{showEli5 ? 'Hide Simple Explanation' : "Explain Like I'm 5"}</button>
+                                        <span className="report-link" onClick={() => handleReportQuestion(currentQuestion.id)}>Report an issue</span>
+                                    </div>
+                                </div>
+                                <button className="submit-button" style={{marginTop: '1.5rem'}} onClick={handleNextQuestion}>
+                                    {currentQuestionIndex < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+        
+        // components/Scenario.js
+        const Scenario = ({ onScenarioComplete }) => {
+            const [scenario, setScenario] = React.useState(null);
+            const [currentNodeId, setCurrentNodeId] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [feedback, setFeedback] = React.useState(null);
+
+            React.useEffect(() => {
+                mockApi.getScenario(1).then(data => {
+                    setScenario(data);
+                    setCurrentNodeId(data.startNode);
+                    setLoading(false);
+                });
+            }, []);
+
+            const handleChoice = (nextNodeId) => {
+                setFeedback(null);
+                if (nextNodeId === 'reflection') setFeedback({type: 'correct', text: 'Good choice! Reflecting the client\'s feelings builds rapport.'});
+                else if(nextNodeId === 'confrontation') setFeedback({type: 'incorrect', text: 'This approach can make the client defensive.'});
+                setTimeout(() => { setCurrentNodeId(nextNodeId); setFeedback(null); }, 2000);
+            };
+
+            if (loading) return <LoadingIndicator />;
+            const currentNode = scenario.nodes[currentNodeId];
+            
+            return (
+                <div className="interactive-container">
+                    <div className="interactive-header"><h2>{scenario.title}</h2></div>
+                    <p className="prompt-text">{currentNode.prompt}</p>
+                    {currentNode.choices.length > 0 ? (
+                        <div className="options-grid">
+                            {currentNode.choices.map((choice, index) => (
+                                <button key={index} className="option-button" onClick={() => handleChoice(choice.nextNode)} disabled={feedback}>{choice.text}</button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="explanation-box"><h4>Scenario Complete</h4><p>{currentNode.end}</p></div>
+                    )}
+                    <div className="interactive-footer">
+                        {feedback && <div className={`feedback ${feedback.type}`}>{feedback.text}</div>}
+                        {currentNode.choices.length === 0 && (<button className="submit-button" style={{marginTop: '1.5rem'}} onClick={onScenarioComplete}>Back to Dashboard</button>)}
+                    </div>
+                </div>
+            );
+        };
+        
+        // components/Flashcards.js
+        const Flashcards = () => {
+            const [decks, setDecks] = React.useState([]);
+            const [selectedDeck, setSelectedDeck] = React.useState(null);
+            const [cards, setCards] = React.useState([]);
+            const [mode, setMode] = React.useState('select'); // select, classic, matching
+            const [loading, setLoading] = React.useState(true);
+            
+            const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
+            const [isFlipped, setIsFlipped] = React.useState(false);
+
+            const [gameItems, setGameItems] = React.useState([]);
+            const [selectedItems, setSelectedItems] = React.useState([]);
+            const [matchedPairs, setMatchedPairs] = React.useState([]);
+
+            React.useEffect(() => {
+                mockApi.getFlashcardDecks().then(data => {
+                    setDecks(data);
+                    setLoading(false);
+                });
+            }, []);
+
+            const handleDeckSelect = (deckId) => {
+                setLoading(true);
+                mockApi.getFlashcards(deckId).then(data => {
+                    setSelectedDeck(decks.find(d => d.id === deckId));
+                    setCards(data);
+                    setMode('classic');
+                    setLoading(false);
+                });
+            };
+
+            const setupMatchingGame = () => {
+                const terms = cards.map(c => ({ type: 'term', ...c }));
+                const defs = cards.map(c => ({ type: 'definition', ...c }));
+                const shuffled = [...terms, ...defs].sort(() => Math.random() - 0.5);
+                setGameItems(shuffled);
+                setMatchedPairs([]);
+                setSelectedItems([]);
+                setMode('matching');
+            };
+
+            const handleMatchSelect = (item) => {
+                if (matchedPairs.includes(item.id) || selectedItems.includes(item)) return;
+                const newSelected = [...selectedItems, item];
+                setSelectedItems(newSelected);
+                if (newSelected.length === 2) {
+                    const [first, second] = newSelected;
+                    if (first.id === second.id && first.type !== second.type) {
+                        setMatchedPairs(prev => [...prev, first.id]);
+                        setSelectedItems([]);
+                    } else {
+                        setTimeout(() => setSelectedItems([]), 800);
+                    }
+                }
+            };
+            
+            const reset = () => {
+                setSelectedDeck(null); setCards([]); setMode('select');
+                setCurrentCardIndex(0); setIsFlipped(false);
+            };
+
+            if (loading) return <LoadingIndicator />;
+
+            if (mode === 'select') {
+                return (
+                    <div className="interactive-container">
+                        <div className="interactive-header"><h2>Flashcard Decks</h2><p>Select a topic to start studying.</p></div>
+                        <div className="options-grid">
+                            {decks.map(deck => (<button key={deck.id} className="option-button" onClick={() => handleDeckSelect(deck.id)}>{deck.name}</button>))}
+                        </div>
+                    </div>
+                );
+            }
+            
+            const currentCard = cards[currentCardIndex];
+            const gameFinished = cards.length > 0 && matchedPairs.length === cards.length;
+
+            return (
+                <div className="interactive-container">
+                    <div className="interactive-header" style={{marginBottom: '1rem'}}>
+                        <h2>{selectedDeck.name}</h2>
+                        <div className="mode-selector">
+                            <button className={`nav-button ${mode === 'classic' ? 'active' : ''}`} onClick={() => setMode('classic')}>Classic</button>
+                            <button className={`nav-button ${mode === 'matching' ? 'active' : ''}`} onClick={setupMatchingGame}>Matching Game</button>
+                        </div>
+                    </div>
+                    
+                    {mode === 'classic' && cards.length > 0 && (
+                        <div>
+                            <div className={`flashcard-container ${isFlipped ? 'flipped' : ''}`} onClick={() => setIsFlipped(!isFlipped)}>
+                                <div className="flashcard-inner">
+                                    <div className="flashcard-front">{currentCard.term}</div>
+                                    <div className="flashcard-back">{currentCard.definition}</div>
+                                </div>
+                            </div>
+                            <div className="flashcard-nav">
+                                <button className="quiz-button" onClick={() => setCurrentCardIndex(prev => (prev - 1 + cards.length) % cards.length)}>&larr; Prev</button>
+                                <span>{currentCardIndex + 1} / {cards.length}</span>
+                                <button className="quiz-button" onClick={() => setCurrentCardIndex(prev => (prev + 1) % cards.length)}>Next &rarr;</button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {mode === 'matching' && (
+                        <div>
+                            {gameFinished ? (
+                                <div className="interactive-results"><h2>Well done!</h2><p>You've matched all the pairs.</p><button className="submit-button" onClick={setupMatchingGame}>Play Again</button></div>
+                            ) : (
+                                <div className="matching-grid">
+                                    {gameItems.map((item, index) => {
+                                        const isSelected = selectedItems.includes(item);
+                                        const isMatched = matchedPairs.includes(item.id);
+                                        const isIncorrect = isSelected && selectedItems.length === 2 && !matchedPairs.includes(item.id);
+                                        let classes = "match-item";
+                                        if (isMatched) classes += " matched";
+                                        if (isSelected) classes += " selected";
+                                        if (isIncorrect) classes += " incorrect";
+                                        return (<div key={index} className={classes} onClick={() => handleMatchSelect(item)}>{item.type === 'term' ? item.term : item.definition}</div>);
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    <div className="interactive-footer"><button className="nav-button" onClick={reset}>&larr; Back to Decks</button></div>
+                </div>
+            );
+        };
+        
+        // components/ProcessPuzzle.js
+        const ProcessPuzzle = () => {
+            const [puzzle, setPuzzle] = React.useState(null);
+            const [items, setItems] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [feedback, setFeedback] = React.useState(null);
+            const dragItem = React.useRef();
+            const dragOverItem = React.useRef();
+
+            React.useEffect(() => {
+                mockApi.getCoachingProcessPuzzle().then(data => {
+                    setPuzzle(data);
+                    setItems(data.items);
+                    setLoading(false);
+                });
+            }, []);
+
+            const handleDragStart = (e, index) => {
+                dragItem.current = index;
+                e.target.classList.add('dragging');
+            };
+
+            const handleDragEnter = (e, index) => {
+                dragOverItem.current = index;
+            };
+
+            const handleDragEnd = (e) => {
+                e.target.classList.remove('dragging');
+                const newItems = [...items];
+                const draggedItemContent = newItems.splice(dragItem.current, 1)[0];
+                newItems.splice(dragOverItem.current, 0, draggedItemContent);
+                dragItem.current = null;
+                dragOverItem.current = null;
+                setItems(newItems);
+            };
+            
+            const checkOrder = () => {
+                const isCorrect = JSON.stringify(items) === JSON.stringify(puzzle.correctOrder);
+                setFeedback({ type: isCorrect ? 'correct' : 'incorrect', text: isCorrect ? 'Perfect! That\'s the correct flow.' : 'Not quite right. Give it another try!' });
+            };
+
+            if (loading) return <LoadingIndicator />;
+
+            return (
+                <div className="interactive-container">
+                    <div className="interactive-header"><h2>{puzzle.title}</h2><p>Drag and drop the steps into the correct order.</p></div>
+                    <div className="options-grid">
+                        {items.map((item, index) => (
+                            <div key={item}
+                                className="puzzle-item"
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragEnter={(e) => handleDragEnter(e, index)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => e.preventDefault()}
+                            >
+                                {index + 1}. {item}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="interactive-footer">
+                        <button className="submit-button" onClick={checkOrder}>Check Order</button>
+                        {feedback && <div className={`feedback ${feedback.type}`}>{feedback.text}</div>}
+                    </div>
+                </div>
+            );
+        };
+        
+        // components/ChallengeMode.js
+        const ChallengeMode = ({ onChallengeComplete }) => {
+            const [gameState, setGameState] = React.useState('select'); // select, playing, finished
+            const [topics, setTopics] = React.useState([]);
+            const [selectedTopic, setSelectedTopic] = React.useState(null);
+            const [questions, setQuestions] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            
+            const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+            const [score, setScore] = React.useState(0);
+            const [timeLeft, setTimeLeft] = React.useState(60);
+
+            React.useEffect(() => {
+                mockApi.getFlashcardDecks().then(data => { // Reusing decks as topics for challenge
+                    setTopics(data);
+                    setLoading(false);
+                });
+            }, []);
+
+            React.useEffect(() => {
+                if (gameState !== 'playing' || timeLeft <= 0) return;
+                const timer = setInterval(() => {
+                    setTimeLeft(prev => prev - 1);
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [gameState, timeLeft]);
+            
+            React.useEffect(() => {
+                if (timeLeft === 0) {
+                    setGameState('finished');
+                }
+            }, [timeLeft]);
+
+            const handleTopicSelect = async (topic) => {
+                setLoading(true);
+                setSelectedTopic(topic);
+                const challengeQuestions = await mockApi.getChallengeQuestions(topic.name);
+                setQuestions(challengeQuestions);
+                setGameState('playing');
+                setLoading(false);
+            };
+
+            const handleAnswer = (option, question) => {
+                let isCorrect = option === question.answer;
+                if (isCorrect) {
+                    setScore(prev => prev + 10);
+                }
+                
+                if (currentQuestionIndex < questions.length - 1) {
+                    setCurrentQuestionIndex(prev => prev + 1);
+                } else {
+                    // Loop back to the beginning for endless challenge within the time limit
+                    setCurrentQuestionIndex(0);
+                }
+            };
+            
+            const handlePlayAgain = () => {
+                setGameState('select');
+                setScore(0);
+                setTimeLeft(60);
+                setCurrentQuestionIndex(0);
+            };
+
+            if (loading) return <LoadingIndicator />;
+
+            if (gameState === 'select') {
+                return (
+                    <div className="interactive-container">
+                        <div className="interactive-header"><h2>Challenge Mode</h2><p>Select a topic to start a timed quiz!</p></div>
+                        <div className="options-grid">
+                            {topics.map(topic => (<button key={topic.id} className="option-button" onClick={() => handleTopicSelect(topic)}>{topic.name}</button>))}
+                        </div>
+                    </div>
+                );
+            }
+            
+            if (gameState === 'finished') {
+                return (
+                    <div className="interactive-container interactive-results">
+                        <h2>Time's Up!</h2>
+                        <p>You completed the {selectedTopic.name} challenge.</p>
+                        <div className="score">{score}</div>
+                        <p>Points Earned</p>
+                        <button className="submit-button" style={{marginTop: '1rem'}} onClick={handlePlayAgain}>Play Again</button>
+                        <button className="nav-button" style={{marginTop: '0.5rem'}} onClick={() => onChallengeComplete()}>Back to Dashboard</button>
+                    </div>
+                );
+            }
+            
+            if (!questions || questions.length === 0) {
+                 return (
+                    <div className="interactive-container">
+                        <div className="interactive-header"><h2>Challenge Mode</h2></div>
+                        <p>No questions available for this topic yet. Please select another.</p>
+                        <div className="interactive-footer">
+                             <button className="submit-button" onClick={handlePlayAgain}>Back to Topics</button>
+                        </div>
+                    </div>
+                );
+            }
+            
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            if (!currentQuestion) {
+                return <LoadingIndicator />; // Add a guard for when questions are being set
+            }
+
+            return (
+                <div className="interactive-container">
+                    <div className="interactive-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <h2>{selectedTopic.name}</h2>
+                        <div className="stat-item" style={{padding: '0.5rem 1rem'}}>
+                            <div className="value">{timeLeft}s</div>
+                            <div className="label">Time Left</div>
+                        </div>
+                        <div className="stat-item" style={{padding: '0.5rem 1rem'}}>
+                            <div className="value">{score}</div>
+                            <div className="label">Score</div>
+                        </div>
+                    </div>
+                    <p className="prompt-text">{currentQuestion.question}</p>
+                    <div className="options-grid">
+                        {currentQuestion.options.map((option, index) => (
+                            <button key={index} className="option-button" onClick={() => handleAnswer(option, currentQuestion)}>{option}</button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+
+        // components/Login.js
+        const Login = ({ onLogin }) => {
+            const [email, setEmail] = React.useState('coach@example.com');
+            const [password, setPassword] = React.useState('password');
+            const [error, setError] = React.useState('');
+            
+            const handleFormSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                try {
+                    const data = await apiClient.login({ email, password });
+                    onLogin(data.token, data.user);
+                } catch (err) {
+                    setError(err.message || 'Login failed. Please try again.');
+                }
+            };
+            
+            return (
+                <div className="login-page">
+                    <div className="login-form-container">
+                        <h1>Welcome!</h1><p>Sign in to access your study platform.</p>
+                        <form className="login-form" onSubmit={handleFormSubmit}>
+                            <div className="input-group"><label htmlFor="email">Email</label><input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
+                            <div className="input-group"><label htmlFor="password">Password</label><input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
+                            {error && <p style={{color: 'var(--error-color)'}}>{error}</p>}
+                            <button type="submit" className="login-button">Login</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // App.js
+        const App = () => {
+            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+            const [activePage, setActivePage] = React.useState('dashboard');
+            const [userData, setUserData] = React.useState(null);
+            const [activeQuizTopic, setActiveQuizTopic] = React.useState(null);
+            const [notification, setNotification] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+
+            React.useEffect(() => {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    setIsLoggedIn(true);
+                }
+                setLoading(false);
+            }, []);
+
+            React.useEffect(() => {
+                if (isLoggedIn) {
+                    apiClient.getUserData()
+                        .then(data => {
+                            setUserData(data);
+                        })
+                        .catch(err => {
+                            console.error("Failed to fetch user data, logging out.", err);
+                            handleLogout();
+                        });
+                }
+            }, [isLoggedIn]);
+
+            const handleLogin = (token, user) => {
+                localStorage.setItem('authToken', token);
+                setIsLoggedIn(true);
+                setActivePage('dashboard');
+            };
+
+            const handleLogout = () => {
+                localStorage.removeItem('authToken');
+                setIsLoggedIn(false);
+                setUserData(null);
+                window.userData = null;
+            };
+            
+            const handleStartQuiz = (topic) => {
+                setActiveQuizTopic(topic);
+                setActivePage('quiz');
+            };
+            
+            const handleQuizComplete = async (topic, correctAnswers, totalQuestions) => {
+                const score = (correctAnswers / totalQuestions) * 100;
+                // This part would eventually be a real API call
+                const result = await mockApi.recordQuizCompletion(topic, score, correctAnswers, totalQuestions);
+                
+                const updatedUserData = { ...userData,
+                    stats: result.newStats,
+                    mastery: result.newMastery,
+                    unlockedAchievements: window.userData.unlockedAchievements
+                };
+                setUserData(updatedUserData);
+
+                if (result.newlyUnlocked.length > 0) {
+                    setNotification(result.newlyUnlocked[0]);
+                }
+                setActivePage('plan');
+            };
+
+            const handlePlanGenerated = (plan) => {
+                setUserData(prev => ({...prev, personalizedPlan: plan, planSettings: window.userData.planSettings }));
+            };
+            
+            const handleRegeneratePlan = () => {
+                setUserData(prev => ({...prev, personalizedPlan: null, planSettings: null }));
+            };
+
+            const renderPage = () => {
+                if (!userData) return <LoadingIndicator />;
+                
+                switch (activePage) {
+                    case 'dashboard':
+                        return <Dashboard userData={userData} onStartQuiz={handleStartQuiz} />;
+                    case 'plan':
+                        if (userData.personalizedPlan) {
+                            return <StudyPlan plan={userData.personalizedPlan} onStartQuiz={handleStartQuiz} onRegenerate={handleRegeneratePlan} />;
+                        } else {
+                            return <PlanSetup userMastery={userData.mastery} onPlanGenerated={handlePlanGenerated} />;
+                        }
+                    case 'quiz':
+                        return <Quiz topic={activeQuizTopic} userMastery={userData.mastery} onQuizComplete={handleQuizComplete} />;
+                    case 'scenarios':
+                        return <Scenario onScenarioComplete={() => setActivePage('dashboard')} />;
+                    case 'flashcards':
+                        return <Flashcards />;
+                    case 'puzzle':
+                        return <ProcessPuzzle />;
+                    case 'challenge':
+                        return <ChallengeMode onChallengeComplete={() => setActivePage('dashboard')} />;
+                    default:
+                        return <Dashboard userData={userData} onStartQuiz={handleStartQuiz} />;
+                }
+            };
+
+            if (loading) return <LoadingIndicator />;
+
+            if (!isLoggedIn) {
+                return <Login onLogin={handleLogin} />;
+            }
+
+            return (
+                <React.Fragment>
+                    <Header activePage={activePage} onNavClick={setActivePage} onLogout={handleLogout} />
+                    <main>
+                        {renderPage()}
+                    </main>
+                    <AchievementNotification achievement={notification} onClose={() => setNotification(null)} />
+                </React.Fragment>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
