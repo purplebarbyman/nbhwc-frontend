@@ -1690,14 +1690,14 @@
                                 <h1>Welcome Back!</h1>
                                 <p>Sign in to access your study platform.</p>
                                 <LoginForm onSubmit={handleLogin} error={error} loading={loading} />
-                                <p style={{marginTop: '1.5rem'}}>Don't have an account? <span className="auth-switch-link" onClick={() => setMode('register')}>Sign up</span></p>
+                                <p style={{marginTop: '1.5rem'}}>Don't have an account? <span className="auth-switch-link" onClick={() => { setError(''); setMode('register'); }}>Sign up</span></p>
                             </div>
                         ) : (
                             <div>
                                 <h1>Create Account</h1>
                                 <p>Start your journey to certification.</p>
                                 <RegisterForm onSubmit={handleRegister} error={error} loading={loading} />
-                                <p style={{marginTop: '1.5rem'}}>Already have an account? <span className="auth-switch-link" onClick={() => setMode('login')}>Sign in</span></p>
+                                <p style={{marginTop: '1.5rem'}}>Already have an account? <span className="auth-switch-link" onClick={() => { setError(''); setMode('login'); }}>Sign in</span></p>
                             </div>
                         )}
                     </div>
