@@ -1759,7 +1759,10 @@
                         try {
                             const data = await apiClient.getUserData();
                             // The mock API is still used for parts not yet on the backend
-                            const mockData = await mockApi.getUserData();
+                            const mockData = {
+                                planSettings: null,
+                                personalizedPlan: null
+                            };
                             // We merge them here. Real stats, mastery, and achievements from backend.
                             setUserData({
                                 stats: data.stats,
