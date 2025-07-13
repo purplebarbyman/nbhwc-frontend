@@ -820,6 +820,9 @@
             }),
             
             generatePersonalizedPlan: ({ examDate, hoursPerWeek, userMastery }) => new Promise(resolve => {
+                 if (!window.userData) {
+                    window.userData = { mastery: userMastery }; // Initialize if it doesn't exist
+                 }
                  const topicTimeEstimates = {
                     'Motivational Interviewing': 120, 'SMART Goals': 90, 'HIPAA Basics': 150,
                     'Coaching Structure': 60, 'Coaching Process': 60, 'Health & Wellness': 60,
@@ -1759,18 +1762,22 @@
                         try {
                             const data = await apiClient.getUserData();
                             // The mock API is still used for parts not yet on the backend
-                            const mockData = {
-                                planSettings: null,
-                                personalizedPlan: null
-                            };
                             // We merge them here. Real stats, mastery, and achievements from backend.
                             setUserData({
                                 stats: data.stats,
                                 mastery: data.mastery,
                                 unlockedAchievements: data.unlockedAchievements,
-                                planSettings: mockData.planSettings, // still from mock
-                                personalizedPlan: mockData.personalizedPlan // still from mock
+                                planSettings: null, // still from mock
+                                personalizedPlan: null // still from mock
                             });
+                            // Initialize mock data in window object for other components
+                            window.userData = {
+                                stats: data.stats,
+                                mastery: data.mastery,
+                                unlockedAchievements: data.unlockedAchievements,
+                                planSettings: null,
+                                personalizedPlan: null
+                            };
                         } catch (err) {
                             console.error("Failed to fetch user data, logging out.", err);
                             handleLogout();
