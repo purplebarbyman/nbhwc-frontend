@@ -772,6 +772,7 @@
             login: (credentials) => apiClient.request('/auth/login', 'POST', credentials),
             register: (userData) => apiClient.request('/auth/register', 'POST', userData),
             getUserData: () => apiClient.request('/user/data', 'GET'),
+            getQuiz: (topic, duration) => apiClient.request('/quizzes', 'POST', { topic, duration }),
         };
         
         // This mockApi remains for features not yet built on the backend.
@@ -892,25 +893,6 @@
             reportQuestion: (questionId, reason) => new Promise(resolve => {
                 console.log(`Reported Q:${questionId} for: ${reason}`);
                 setTimeout(() => resolve({ success: true }), 500);
-            }),
-
-            getAdaptiveQuizQuestions: (topic, userMastery) => new Promise(resolve => {
-                const allQuestions = {
-                    'Motivational Interviewing': [
-                        { id: 1, question: "Which is a core principle of MI?", options: ["Expressing empathy", "Giving advice"], answer: "Expressing empathy", difficulty: 'easy', explanation: "Expressing empathy involves seeing the world from the client's perspective and communicating that understanding. It's foundational to building trust and is a core part of the MI spirit.", eli5: "It means showing you understand how someone feels, like saying 'that sounds really tough' instead of just telling them what to do." },
-                        { id: 2, question: "What is 'rolling with resistance'?", options: ["Arguing with the client", "Accepting client's reluctance"], answer: "Accepting client's reluctance", difficulty: 'medium', explanation: "Resistance is a signal to change strategies. Instead of confronting it, the coach 'rolls with it,' acknowledging the client's perspective without judgment to avoid a power struggle.", eli5: "Instead of fighting when someone says 'I can't,' you say 'Okay, let's talk about that.' You don't push back." },
-                    ],
-                    'SMART Goals': [
-                        { id: 5, question: "What does 'S' in SMART stand for?", options: ["Specific", "Simple"], answer: "Specific", difficulty: 'easy', explanation: "A specific goal has a much greater chance of being accomplished than a general goal. It answers the questions: Who? What? Where? When? Why?", eli5: "Instead of 'be healthier,' you say exactly *what* you'll do, like 'eat one apple every day.'" },
-                    ],
-                    'HIPAA Basics': [
-                        { id: 8, question: "What does HIPAA stand for?", options: ["Health Info Portability & Accountability Act", "Health Insurance Privacy & Access Act"], answer: "Health Info Portability & Accountability Act", difficulty: 'medium', explanation: "HIPAA is the Health Insurance Portability and Accountability Act of 1996. It's a federal law that required the creation of national standards to protect sensitive patient health information.", eli5: "It's the big law that says doctors and others have to keep your health info super private." },
-                    ]
-                };
-                const topicQuestions = allQuestions[topic] || [];
-                const masteryScore = userMastery[topic] || 0;
-                let selectedQuestions = masteryScore > 75 ? topicQuestions.sort((a,b) => (a.difficulty === 'hard' ? -1 : 1)) : topicQuestions.sort((a,b) => (a.difficulty === 'easy' ? -1 : 1));
-                setTimeout(() => resolve(selectedQuestions.slice(0, 3)), 600);
             }),
             
             getScenario: (id) => new Promise(resolve => {
@@ -1111,7 +1093,7 @@
                             {focusTopic ? (
                                 <><p>Based on your performance, we recommend focusing on:</p>
                                 <h3 style={{color: 'var(--primary-color)', margin: '1rem 0'}}>{focusTopic}</h3>
-                                <button className="quiz-button" onClick={() => onStartQuiz(focusTopic)}>Start Quiz</button></>
+                                <button className="quiz-button" onClick={() => onStartQuiz(focusTopic, 15)}>Start 15 Min Quiz</button></>
                             ) : <LoadingIndicator />}
                         </div>
                         <div className="card">
@@ -1148,7 +1130,7 @@
                                         <li key={task.name} className="task-item">
                                             <i className={mockApi.taskIcons[task.type]}></i>
                                             <div className="task-details"><div className="task-name">{task.name}</div><div className="task-time">{task.time}</div></div>
-                                            {task.type === 'quiz' && (<button className="quiz-button" onClick={() => onStartQuiz(task.topic)}>Take Quiz</button>)}
+                                            {task.type === 'quiz' && (<button className="quiz-button" onClick={() => onStartQuiz(task.topic, parseInt(task.time))}>Take Quiz</button>)}
                                         </li>
                                     ))}
                                 </ul>
@@ -1187,7 +1169,8 @@
 
 
         // components/Quiz.js
-        const Quiz = ({ topic, userMastery, onQuizComplete }) => {
+        const Quiz = ({ quizState, onQuizComplete }) => {
+            const { topic, duration } = quizState;
             const [questions, setQuestions] = React.useState([]);
             const [loading, setLoading] = React.useState(true);
             const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
@@ -1201,12 +1184,18 @@
             React.useEffect(() => {
                 const fetchQuestions = async () => {
                     setLoading(true);
-                    const quizQuestions = await mockApi.getAdaptiveQuizQuestions(topic, userMastery);
-                    setQuestions(quizQuestions);
-                    setLoading(false);
+                    try {
+                        const quizQuestions = await apiClient.getQuiz(topic, duration);
+                        setQuestions(quizQuestions);
+                    } catch (error) {
+                        console.error("Failed to fetch quiz questions:", error);
+                        // Optionally, set an error state to show in the UI
+                    } finally {
+                        setLoading(false);
+                    }
                 };
                 fetchQuestions();
-            }, [topic]);
+            }, [topic, duration]);
             
             if (loading) return <LoadingIndicator />;
             if (questions.length === 0) return <div>No questions available for this topic.</div>;
@@ -1744,7 +1733,7 @@
             const [isLoggedIn, setIsLoggedIn] = React.useState(false);
             const [activePage, setActivePage] = React.useState('dashboard');
             const [userData, setUserData] = React.useState(null);
-            const [activeQuizTopic, setActiveQuizTopic] = React.useState(null);
+            const [activeQuizState, setActiveQuizState] = React.useState(null);
             const [notification, setNotification] = React.useState(null);
             const [loading, setLoading] = React.useState(true);
 
@@ -1761,23 +1750,8 @@
                     if (isLoggedIn) {
                         try {
                             const data = await apiClient.getUserData();
-                            // The mock API is still used for parts not yet on the backend
-                            // We merge them here. Real stats, mastery, and achievements from backend.
-                            setUserData({
-                                stats: data.stats,
-                                mastery: data.mastery,
-                                unlockedAchievements: data.unlockedAchievements,
-                                planSettings: null, // still from mock
-                                personalizedPlan: null // still from mock
-                            });
-                            // Initialize mock data in window object for other components
-                            window.userData = {
-                                stats: data.stats,
-                                mastery: data.mastery,
-                                unlockedAchievements: data.unlockedAchievements,
-                                planSettings: null,
-                                personalizedPlan: null
-                            };
+                            window.userData = data; // Initialize global mock data object
+                            setUserData(data);
                         } catch (err) {
                             console.error("Failed to fetch user data, logging out.", err);
                             handleLogout();
@@ -1800,8 +1774,8 @@
                 window.userData = null;
             };
             
-            const handleStartQuiz = (topic) => {
-                setActiveQuizTopic(topic);
+            const handleStartQuiz = (topic, duration) => {
+                setActiveQuizState({ topic, duration });
                 setActivePage('quiz');
             };
             
@@ -1844,7 +1818,7 @@
                             return <PlanSetup userMastery={userData.mastery} onPlanGenerated={handlePlanGenerated} />;
                         }
                     case 'quiz':
-                        return <Quiz topic={activeQuizTopic} userMastery={userData.mastery} onQuizComplete={handleQuizComplete} />;
+                        return <Quiz quizState={activeQuizState} onQuizComplete={handleQuizComplete} />;
                     case 'scenarios':
                         return <Scenario onScenarioComplete={() => setActivePage('dashboard')} />;
                     case 'flashcards':
