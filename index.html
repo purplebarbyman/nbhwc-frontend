@@ -1750,7 +1750,8 @@
                     if (isLoggedIn) {
                         try {
                             const data = await apiClient.getUserData();
-                            window.userData = data; // Initialize global mock data object
+                            // Initialize the global mock data object once we have real data
+                            window.userData = data;
                             setUserData(data);
                         } catch (err) {
                             console.error("Failed to fetch user data, logging out.", err);
