@@ -1750,8 +1750,9 @@
                     if (isLoggedIn) {
                         try {
                             const data = await apiClient.getUserData();
-                            // Initialize the global mock data object once we have real data
-                            window.userData = data;
+                            // The mock API is still used for parts not yet on the backend,
+                            // so we initialize the global object for them to use.
+                            window.userData = data; 
                             setUserData(data);
                         } catch (err) {
                             console.error("Failed to fetch user data, logging out.", err);
