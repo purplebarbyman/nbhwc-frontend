@@ -663,7 +663,7 @@
 
 
         /* --- Login Page --- */
-        .login-page {
+        .auth-page {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -671,7 +671,7 @@
             padding: 2rem;
         }
 
-        .login-form-container {
+        .auth-form-container {
             width: 100%;
             max-width: 400px;
             background: var(--card-background);
@@ -681,23 +681,23 @@
             text-align: center;
         }
 
-        .login-form-container h1 {
+        .auth-form-container h1 {
             margin-bottom: 0.5rem;
             font-size: 1.8rem;
         }
 
-        .login-form-container p {
+        .auth-form-container p {
             margin-bottom: 2rem;
             color: var(--light-text-color);
         }
 
-        .login-form {
+        .auth-form {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
         
-        .login-button {
+        .auth-button {
             width: 100%;
             padding: 0.8rem;
             background-color: var(--primary-color);
@@ -710,8 +710,14 @@
             transition: background-color 0.2s;
         }
 
-        .login-button:hover {
+        .auth-button:hover {
             background-color: #357abd;
+        }
+        
+        .auth-switch-link {
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
         }
 
         /* Responsive */
@@ -1644,35 +1650,88 @@
         };
 
 
-        // components/Login.js
-        const Login = ({ onLogin }) => {
-            const [email, setEmail] = React.useState('coach@example.com');
-            const [password, setPassword] = React.useState('password');
+        // components/AuthPage.js
+        const AuthPage = ({ onLogin }) => {
+            const [mode, setMode] = React.useState('login'); // 'login' or 'register'
             const [error, setError] = React.useState('');
-            
-            const handleFormSubmit = async (e) => {
-                e.preventDefault();
+            const [loading, setLoading] = React.useState(false);
+
+            const handleLogin = async (credentials) => {
+                setLoading(true);
                 setError('');
                 try {
-                    const data = await apiClient.login({ email, password });
+                    const data = await apiClient.login(credentials);
                     onLogin(data.token, data.user);
                 } catch (err) {
                     setError(err.message || 'Login failed. Please try again.');
+                    setLoading(false);
                 }
             };
-            
+
+            const handleRegister = async (details) => {
+                setLoading(true);
+                setError('');
+                try {
+                    await apiClient.register(details);
+                    // After successful registration, automatically log them in
+                    const data = await apiClient.login({email: details.email, password: details.password });
+                    onLogin(data.token, data.user);
+                } catch (err) {
+                    setError(err.message || 'Registration failed. Please try again.');
+                    setLoading(false);
+                }
+            };
+
             return (
-                <div className="login-page">
-                    <div className="login-form-container">
-                        <h1>Welcome!</h1><p>Sign in to access your study platform.</p>
-                        <form className="login-form" onSubmit={handleFormSubmit}>
-                            <div className="input-group"><label htmlFor="email">Email</label><input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
-                            <div className="input-group"><label htmlFor="password">Password</label><input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
-                            {error && <p style={{color: 'var(--error-color)'}}>{error}</p>}
-                            <button type="submit" className="login-button">Login</button>
-                        </form>
+                <div className="auth-page">
+                    <div className="auth-form-container">
+                        {mode === 'login' ? (
+                            <div>
+                                <h1>Welcome Back!</h1>
+                                <p>Sign in to access your study platform.</p>
+                                <LoginForm onSubmit={handleLogin} error={error} loading={loading} />
+                                <p style={{marginTop: '1.5rem'}}>Don't have an account? <span className="auth-switch-link" onClick={() => setMode('register')}>Sign up</span></p>
+                            </div>
+                        ) : (
+                            <div>
+                                <h1>Create Account</h1>
+                                <p>Start your journey to certification.</p>
+                                <RegisterForm onSubmit={handleRegister} error={error} loading={loading} />
+                                <p style={{marginTop: '1.5rem'}}>Already have an account? <span className="auth-switch-link" onClick={() => setMode('login')}>Sign in</span></p>
+                            </div>
+                        )}
                     </div>
                 </div>
+            );
+        };
+
+        const LoginForm = ({ onSubmit, error, loading }) => {
+            const [email, setEmail] = React.useState('');
+            const [password, setPassword] = React.useState('');
+            
+            return (
+                <form className="auth-form" onSubmit={(e) => { e.preventDefault(); onSubmit({email, password}); }}>
+                    <div className="input-group"><label htmlFor="email">Email</label><input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
+                    <div className="input-group"><label htmlFor="password">Password</label><input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
+                    {error && <p style={{color: 'var(--error-color)'}}>{error}</p>}
+                    <button type="submit" className="auth-button" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
+                </form>
+            );
+        };
+
+        const RegisterForm = ({ onSubmit, error, loading }) => {
+            const [fullName, setFullName] = React.useState('');
+            const [email, setEmail] = React.useState('');
+            const [password, setPassword] = React.useState('');
+
+            return (
+                <form className="auth-form" onSubmit={(e) => { e.preventDefault(); onSubmit({fullName, email, password}); }}>
+                    <div className="input-group"><label htmlFor="name">Full Name</label><input type="text" id="name" value={fullName} onChange={e => setFullName(e.target.value)} required /></div>
+                    <div className="input-group"><label htmlFor="email">Email</label><input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
+                    <div className="input-group"><label htmlFor="password">Password</label><input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
+                    {error && <p style={{color: 'var(--error-color)'}}>{error}</p>}
+                    <button type="submit" className="auth-button" disabled={loading}>{loading ? 'Creating Account...' : 'Create Account'}</button>
+                </form>
             );
         };
 
@@ -1695,16 +1754,27 @@
             }, []);
 
             React.useEffect(() => {
-                if (isLoggedIn) {
-                    apiClient.getUserData()
-                        .then(data => {
-                            setUserData(data);
-                        })
-                        .catch(err => {
+                const fetchUserData = async () => {
+                    if (isLoggedIn) {
+                        try {
+                            const data = await apiClient.getUserData();
+                            // The mock API is still used for parts not yet on the backend
+                            const mockData = await mockApi.getUserData();
+                            // We merge them here. Real stats, mastery, and achievements from backend.
+                            setUserData({
+                                stats: data.stats,
+                                mastery: data.mastery,
+                                unlockedAchievements: data.unlockedAchievements,
+                                planSettings: mockData.planSettings, // still from mock
+                                personalizedPlan: mockData.personalizedPlan // still from mock
+                            });
+                        } catch (err) {
                             console.error("Failed to fetch user data, logging out.", err);
                             handleLogout();
-                        });
-                }
+                        }
+                    }
+                };
+                fetchUserData();
             }, [isLoggedIn]);
 
             const handleLogin = (token, user) => {
@@ -1781,7 +1851,7 @@
             if (loading) return <LoadingIndicator />;
 
             if (!isLoggedIn) {
-                return <Login onLogin={handleLogin} />;
+                return <AuthPage onLogin={handleLogin} />;
             }
 
             return (
