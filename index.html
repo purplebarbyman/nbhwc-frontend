@@ -1981,11 +1981,7 @@
                     case 'dashboard':
                         return <Dashboard userData={userData} onStartQuiz={handleStartQuiz} />;
                     case 'plan':
-                        if (userData.personalizedPlan) {
-                            return <StudyPlan plan={userData.personalizedPlan} onStartQuiz={handleStartQuiz} onRegenerate={handleRegeneratePlan} />;
-                        } else {
-                            return <PlanSetup userMastery={userData.mastery} onPlanGenerated={handlePlanGenerated} />;
-                        }
+                        return <StudyPlanPage userData={userData} onStartQuiz={handleStartQuiz} onPlanGenerated={handlePlanGenerated} />;
                     case 'quiz':
                         return <Quiz quizState={activeQuizState} onQuizComplete={handleQuizComplete} />;
                     case 'scenarios':
