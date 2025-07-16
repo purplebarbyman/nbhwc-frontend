@@ -835,6 +835,8 @@
             register: (userData) => apiClient.request('/auth/register', 'POST', userData),
             getUserData: () => apiClient.request('/user/data', 'GET'),
             getQuiz: (topic, duration) => apiClient.request('/quizzes', 'POST', { topic, duration }),
+            getFlashcardDecks: () => apiClient.request('/flashcards/decks'),
+            getFlashcards: (deckId) => apiClient.request(`/flashcards/decks/${deckId}`),
         };
         
         // This mockApi remains for features not yet built on the backend.
@@ -986,34 +988,6 @@
                     }
                 };
                 setTimeout(() => resolve(scenarios[id]), 500);
-            }),
-            
-            getFlashcardDecks: () => new Promise(resolve => {
-                setTimeout(() => resolve([
-                    { id: 'mi', name: 'Motivational Interviewing' },
-                    { id: 'smart', name: 'SMART Goals' },
-                    { id: 'ethics', name: 'Core Ethics' }
-                ]), 200);
-            }),
-            
-            getFlashcards: (deckId) => new Promise(resolve => {
-                const allCards = {
-                    'mi': [
-                        { id: 1, term: 'Empathy', definition: 'The ability to understand and share the feelings of another from their perspective.' },
-                        { id: 2, term: 'Change Talk', definition: 'Any self-expressed language that is an argument for change.' },
-                        { id: 3, term: 'Rolling with Resistance', definition: 'A strategy of not directly opposing client resistance but rather flowing with it.' },
-                    ],
-                    'smart': [
-                        { id: 4, term: 'Specific', definition: 'The goal is clear and unambiguous, answering who, what, where, and why.' },
-                        { id: 5, term: 'Measurable', definition: 'The goal has concrete criteria for tracking progress.' },
-                        { id: 6, term: 'Achievable', definition: 'The goal is realistic and attainable for the individual.' },
-                    ],
-                    'ethics': [
-                        { id: 9, term: 'Confidentiality', definition: 'The ethical duty to keep client information private.' },
-                        { id: 10, term: 'Scope of Practice', definition: 'The procedures, actions, and processes that a professional is permitted to undertake in keeping with the terms of their professional license or certification.' },
-                    ]
-                };
-                setTimeout(() => resolve(allCards[deckId] || []), 400);
             }),
             
             getCoachingProcessPuzzle: () => new Promise(resolve => {
