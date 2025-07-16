@@ -882,9 +882,9 @@
                 }), 400);
             }),
             
-            generatePersonalizedPlan: ({ examDate, hoursPerWeek, userMastery }) => new Promise(resolve => {
+            generatePersonalizedPlan: ({ examDate, hoursPerWeek, userMastery, focusArea }) => new Promise(resolve => {
                  if (!window.userData) {
-                    window.userData = { mastery: userMastery }; // Initialize if it doesn't exist
+                    window.userData = { mastery: userMastery };
                  }
                  const topicTimeEstimates = {
                     'Motivational Interviewing': 120, 'SMART Goals': 90, 'HIPAA Basics': 150,
@@ -893,9 +893,22 @@
                 };
 
                 const topicsToStudy = Object.keys(topicTimeEstimates)
-                    .map(topic => ({ topic, timeNeeded: topicTimeEstimates[topic] * (1 - (userMastery[topic] || 0) / 100) }))
+                    .map(topic => {
+                        const mastery = userMastery[topic] || 0;
+                        let timeNeeded = topicTimeEstimates[topic] * (1 - mastery / 100);
+                        // Apply a 25% time boost to the focus area
+                        if (topic === focusArea) {
+                            timeNeeded *= 1.25;
+                        }
+                        return { topic, timeNeeded };
+                    })
                     .filter(t => t.timeNeeded > 0)
-                    .sort((a, b) => (userMastery[a.topic] || 0) - (userMastery[b.topic] || 0));
+                    .sort((a, b) => {
+                        // Prioritize focus area, then lowest mastery
+                        if (a.topic === focusArea) return -1;
+                        if (b.topic === focusArea) return 1;
+                        return (userMastery[a.topic] || 0) - (userMastery[b.topic] || 0);
+                    });
 
                 const dailyMinutesAvailable = (hoursPerWeek / 7) * 60;
                 const plan = {};
@@ -925,7 +938,7 @@
                     if (currentDate > new Date(examDate)) break;
                 }
                 
-                window.userData.planSettings = { examDate, hoursPerWeek };
+                window.userData.planSettings = { examDate, hoursPerWeek, focusArea };
                 window.userData.personalizedPlan = plan;
                 setTimeout(() => resolve(plan), 1000);
             }),
@@ -1198,7 +1211,27 @@
 
 
         // components/StudyPlan.js
-        const StudyPlan = ({ plan, onStartQuiz, onRegenerate }) => {
+        const StudyPlanPage = ({ userData, onStartQuiz, onPlanGenerated }) => {
+            const [plan, setPlan] = React.useState(userData.personalizedPlan);
+            
+            const handlePlanGenerated = (newPlan) => {
+                setPlan(newPlan);
+                onPlanGenerated(newPlan);
+            };
+            
+            const handleRegenerate = () => {
+                setPlan(null);
+                onPlanGenerated(null); // Signal to App to clear the plan
+            };
+            
+            if (plan) {
+                return <StudyPlanDisplay plan={plan} onStartQuiz={onStartQuiz} onRegenerate={handleRegenerate} />;
+            } else {
+                return <PlanSetup userMastery={userData.mastery} onPlanGenerated={handlePlanGenerated} />;
+            }
+        };
+
+        const StudyPlanDisplay = ({ plan, onStartQuiz, onRegenerate }) => {
             return (
                 <div className="study-plan-container">
                     <div className="dashboard-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -1227,28 +1260,66 @@
         
         // components/PlanSetup.js
         const PlanSetup = ({ userMastery, onPlanGenerated }) => {
-            const [examDate, setExamDate] = React.useState('');
-            const [hoursPerWeek, setHoursPerWeek] = React.useState(5);
+            const [step, setStep] = React.useState(1); // 1 for settings, 2 for outline
+            const [settings, setSettings] = React.useState({ examDate: '', hoursPerWeek: 5, focusArea: 'None' });
             const [loading, setLoading] = React.useState(false);
             
-            const handleSubmit = async (e) => {
+            const handleSettingsSubmit = (e) => {
                 e.preventDefault();
+                setStep(2);
+            };
+            
+            const handleGeneratePlan = async () => {
                 setLoading(true);
-                const plan = await mockApi.generatePersonalizedPlan({ examDate, hoursPerWeek, userMastery });
+                const plan = await mockApi.generatePersonalizedPlan({ ...settings, userMastery });
                 onPlanGenerated(plan);
                 setLoading(false);
             };
             
-            return (
-                <div className="interactive-container">
-                    <div className="interactive-header"><h2>Create Your Study Plan</h2><p>Tell us your goals, and we'll build a custom timeline for you.</p></div>
-                    <form onSubmit={handleSubmit}>
-                        <div className="input-group"><label htmlFor="examDate">Target Exam Date</label><input type="date" id="examDate" value={examDate} onChange={(e) => setExamDate(e.target.value)} required /></div>
-                        <div className="input-group"><label htmlFor="hoursPerWeek">Study Hours Per Week</label><input type="number" id="hoursPerWeek" value={hoursPerWeek} onChange={(e) => setHoursPerWeek(e.target.value)} min="1" max="40" required /></div>
-                        <button type="submit" className="submit-button" disabled={loading}>{loading ? 'Generating...' : 'Create My Plan'}</button>
-                    </form>
-                </div>
-            );
+            const today = new Date().toISOString().split('T')[0];
+
+            if (step === 1) {
+                return (
+                    <div className="interactive-container">
+                        <div className="interactive-header"><h2>Create Your Study Plan</h2><p>Tell us your goals, and we'll build a custom timeline for you.</p></div>
+                        <form onSubmit={handleSettingsSubmit}>
+                            <div className="input-group"><label htmlFor="examDate">Target Exam Date</label><input type="date" id="examDate" min={today} value={settings.examDate} onChange={(e) => setSettings({...settings, examDate: e.target.value})} required /></div>
+                            <div className="input-group"><label htmlFor="hoursPerWeek">Study Hours Per Week</label><input type="number" id="hoursPerWeek" value={settings.hoursPerWeek} onChange={(e) => setSettings({...settings, hoursPerWeek: e.target.value})} min="1" max="40" required /></div>
+                            <button type="submit" className="submit-button">Next: Review Outline</button>
+                        </form>
+                    </div>
+                );
+            }
+            
+            if (step === 2) {
+                const totalDays = Math.round((new Date(settings.examDate) - new Date()) / (1000 * 60 * 60 * 24));
+                const totalHours = Math.round(totalDays / 7 * settings.hoursPerWeek);
+
+                return (
+                    <div className="interactive-container">
+                        <div className="interactive-header"><h2>Plan Outline & Customization</h2><p>Here's the proposed structure. You can add a focus area if you like.</p></div>
+                        <div className="card" style={{marginBottom: '2rem'}}>
+                            <p><strong>Exam Date:</strong> {new Date(settings.examDate + 'T00:00:00').toLocaleDateString('en-US', { dateStyle: 'full' })}</p>
+                            <p><strong>Total Study Days:</strong> ~{totalDays} days</p>
+                            <p><strong>Total Study Time:</strong> ~{totalHours} hours</p>
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="focusArea">Optional: Prioritize a specific area?</label>
+                            <select id="focusArea" value={settings.focusArea} onChange={(e) => setSettings({...settings, focusArea: e.target.value})}>
+                                <option value="None">No preference (Recommended)</option>
+                                <option value="Coaching Structure">Coaching Structure</option>
+                                <option value="Coaching Process">Coaching Process</option>
+                                <option value="Health & Wellness">Health & Wellness</option>
+                                <option value="Ethics, Legal & Professional Responsibility">Ethics, Legal & Professional Responsibility</option>
+                            </select>
+                        </div>
+                        <button onClick={handleGeneratePlan} className="submit-button" disabled={loading}>
+                            {loading ? 'Generating...' : 'Generate My Personalized Plan'}
+                        </button>
+                        <button onClick={() => setStep(1)} className="nav-button" style={{marginTop: '0.5rem'}}>&larr; Back to Settings</button>
+                    </div>
+                );
+            }
         };
 
 
@@ -1273,7 +1344,6 @@
                         setQuestions(quizQuestions);
                     } catch (error) {
                         console.error("Failed to fetch quiz questions:", error);
-                        // Optionally, set an error state to show in the UI
                     } finally {
                         setLoading(false);
                     }
