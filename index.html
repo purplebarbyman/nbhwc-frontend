@@ -1053,6 +1053,23 @@
                 </header>
             );
         };
+        
+        // components/Footer.js
+        const Footer = () => {
+            return (
+                <footer className="app-footer">
+                    <span>
+                        A resource by <a href="http://www.energizeandempower.com" target="_blank" rel="noopener noreferrer">Energize and Empower Coaching</a>
+                    </span>
+                    <span style={{ margin: '0 10px' }}>|</span>
+                    <span>
+                        <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=zacharyjones13@gmail.com&item_name=Buy+Me+a+Coffee+for+the+NBHWC+Study+Platform&currency_code=USD" target="_blank" rel="noopener noreferrer">
+                            Buy me a coffee ☕
+                        </a>
+                    </span>
+                </footer>
+            );
+        };
 
 
         // components/Dashboard.js
@@ -1866,9 +1883,7 @@
                     <main>
                         {renderPage()}
                     </main>
-                    <footer className="app-footer">
-                        A resource by <a href="http://www.energizeandempower.com" target="_blank" rel="noopener noreferrer">Energize and Empower Coaching</a>
-                    </footer>
+                    <Footer />
                     <AchievementNotification achievement={notification} onClose={() => setNotification(null)} />
                 </React.Fragment>
             );
