@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -837,53 +838,12 @@
             getQuiz: (topic, duration) => apiClient.request('/quizzes', 'POST', { topic, duration }),
             getFlashcardDecks: () => apiClient.request('/flashcards/decks'),
             getFlashcards: (deckId) => apiClient.request(`/flashcards/decks/${deckId}`),
+            submitQuiz: (results) => apiClient.request('/quizzes/submit', 'POST', results),
+            getMasteryTrend: (topic) => apiClient.request(`/analytics/mastery-trend?topic=${encodeURIComponent(topic)}`),
         };
         
         // This mockApi remains for features not yet built on the backend.
         const mockApi = {
-            recordQuizCompletion: (topic, score, correctAnswers, totalQuestions) => new Promise(resolve => {
-                const today = new Date().toISOString().split('T')[0];
-                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-                
-                const pointsEarned = (correctAnswers * 10) + (score === 100 ? 50 : 0);
-                window.userData.stats.points += pointsEarned;
-                
-                if (window.userData.stats.last_study_date !== today) {
-                    if (window.userData.stats.last_study_date === yesterday) {
-                        window.userData.stats.streak += 1;
-                    } else {
-                        window.userData.stats.streak = 1;
-                    }
-                    window.userData.stats.last_study_date = today;
-                }
-                
-                const currentMastery = window.userData.mastery[topic] || 50;
-                const newMastery = Math.min(100, Math.round(currentMastery + (score / 100 * 15)));
-                window.userData.mastery[topic] = newMastery;
-                
-                const newlyUnlocked = [];
-                const allAchievements = mockApi.getAchievements();
-                
-                allAchievements.forEach(ach => {
-                    if (!window.userData.unlockedAchievements.includes(ach.id)) {
-                        let unlocked = false;
-                        if (ach.type === 'streak' && window.userData.stats.streak >= ach.value) unlocked = true;
-                        if (ach.type === 'mastery' && newMastery >= ach.value) unlocked = true;
-                        if (unlocked) {
-                            window.userData.unlockedAchievements.push(ach.id);
-                            newlyUnlocked.push(ach);
-                        }
-                    }
-                });
-                
-                setTimeout(() => resolve({ 
-                    success: true, 
-                    newStats: window.userData.stats, 
-                    newMastery: window.userData.mastery, 
-                    newlyUnlocked 
-                }), 400);
-            }),
-            
             generatePersonalizedPlan: ({ examDate, hoursPerWeek, userMastery, focusArea }) => new Promise(resolve => {
                  if (!window.userData) {
                     window.userData = { mastery: userMastery };
@@ -1072,6 +1032,7 @@
                     <nav className="main-nav">
                         <button className={`nav-button ${activePage === 'dashboard' ? 'active' : ''}`} onClick={() => onNavClick('dashboard')}>Dashboard</button>
                         <button className={`nav-button ${activePage === 'plan' ? 'active' : ''}`} onClick={() => onNavClick('plan')}>Study Plan</button>
+                        <button className={`nav-button ${activePage === 'analytics' ? 'active' : ''}`} onClick={() => onNavClick('analytics')}>Analytics</button>
                         <button className={`nav-button ${activePage === 'scenarios' ? 'active' : ''}`} onClick={() => onNavClick('scenarios')}>Scenarios</button>
                         <button className={`nav-button ${activePage === 'flashcards' ? 'active' : ''}`} onClick={() => onNavClick('flashcards')}>Flashcards</button>
                         <button className={`nav-button ${activePage === 'puzzle' ? 'active' : ''}`} onClick={() => onNavClick('puzzle')}>Process Puzzle</button>
