@@ -1457,7 +1457,7 @@
             const [matchedPairs, setMatchedPairs] = React.useState([]);
 
             React.useEffect(() => {
-                mockApi.getFlashcardDecks().then(data => {
+                apiClient.getFlashcardDecks().then(data => {
                     setDecks(data);
                     setLoading(false);
                 });
@@ -1465,7 +1465,7 @@
 
             const handleDeckSelect = (deckId) => {
                 setLoading(true);
-                mockApi.getFlashcards(deckId).then(data => {
+                apiClient.getFlashcards(deckId).then(data => {
                     setSelectedDeck(decks.find(d => d.id === deckId));
                     setCards(data);
                     setMode('classic');
