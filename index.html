@@ -117,6 +117,26 @@
             flex-grow: 1;
             padding: 2rem;
         }
+        
+        /* --- Footer --- */
+        .app-footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--light-text-color);
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .app-footer a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .app-footer a:hover {
+            text-decoration: underline;
+        }
 
         .grid-container {
             display: grid;
@@ -1750,9 +1770,8 @@
                     if (isLoggedIn) {
                         try {
                             const data = await apiClient.getUserData();
-                            // The mock API is still used for parts not yet on the backend,
-                            // so we initialize the global object for them to use.
-                            window.userData = data; 
+                            // Initialize the global mock data object once we have real data
+                            window.userData = data;
                             setUserData(data);
                         } catch (err) {
                             console.error("Failed to fetch user data, logging out.", err);
