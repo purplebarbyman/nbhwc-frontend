@@ -126,6 +126,7 @@
             color: var(--light-text-color);
             background-color: var(--card-background);
             border-top: 1px solid var(--border-color);
+            margin-top: auto;
         }
         
         .app-footer a {
@@ -1865,6 +1866,9 @@
                     <main>
                         {renderPage()}
                     </main>
+                    <footer className="app-footer">
+                        A resource by <a href="http://www.energizeandempower.com" target="_blank" rel="noopener noreferrer">Energize and Empower Coaching</a>
+                    </footer>
                     <AchievementNotification achievement={notification} onClose={() => setNotification(null)} />
                 </React.Fragment>
             );
