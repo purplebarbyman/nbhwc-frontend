@@ -23,6 +23,16 @@
             --error-color: #D0021B;
             --achievement-color: #F5A623;
         }
+        
+        body.dark {
+            --primary-color: #58a6ff;
+            --secondary-color: #50E3C2;
+            --background-color: #0d1117;
+            --card-background: #161b22;
+            --text-color: #c9d1d9;
+            --light-text-color: #8b949e;
+            --border-color: #30363d;
+        }
 
         * {
             box-sizing: border-box;
@@ -35,6 +45,7 @@
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         #root {
@@ -61,6 +72,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         .logo {
@@ -94,7 +106,32 @@
 
         .nav-button.active,.nav-button:hover {
             color: var(--primary-color);
-            background-color: #e9f2fe;
+            background-color: rgba(74, 144, 226, 0.1);
+        }
+        
+        body.dark .nav-button.active, body.dark .nav-button:hover {
+             background-color: rgba(88, 166, 255, 0.15);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle-button {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s, color 0.2s;
         }
 
         .logout-button {
@@ -127,6 +164,7 @@
             background-color: var(--card-background);
             border-top: 1px solid var(--border-color);
             margin-top: auto;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         .app-footer a {
@@ -150,7 +188,7 @@
             border-radius: 12px;
             padding: 1.5rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            transition: transform 0.2s;
+            transition: transform 0.2s, background-color 0.3s;
         }
 
         .card:hover {
@@ -187,7 +225,8 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 1rem;
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
 
         /* --- Dashboard Specific --- */
@@ -213,7 +252,8 @@
         }
 
         .stat-item {
-            background-color: #e9f2fe;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
             padding: 1rem;
             border-radius: 8px;
             text-align: center;
@@ -248,7 +288,7 @@
         .progress-bar {
             width: 100%;
             height: 10px;
-            background-color: #e0e0e0;
+            background-color: var(--background-color);
             border-radius: 5px;
             overflow: hidden;
         }
@@ -380,7 +420,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 2rem;
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
             padding: 1rem;
             border-radius: 8px;
             border-left: 4px solid var(--secondary-color);
@@ -397,11 +437,12 @@
             padding: 1rem;
             font-size: 1rem;
             text-align: left;
-            background-color: #f0f0f0;
-            border: 2px solid transparent;
+            background-color: var(--background-color);
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
+            color: var(--text-color);
         }
 
         .option-button:hover {
@@ -409,18 +450,18 @@
         }
 
         .option-button.selected {
-            background-color: #e9f2fe;
+            background-color: rgba(74, 144, 226, 0.1);
             border-color: var(--primary-color);
             font-weight: 600;
         }
         
         .option-button.correct {
-            background-color: #e4f8d3;
+            background-color: rgba(126, 211, 33, 0.1);
             border-color: var(--success-color);
         }
         
         .option-button.incorrect {
-            background-color: #f9d7db;
+            background-color: rgba(208, 2, 27, 0.1);
             border-color: var(--error-color);
         }
 
@@ -478,19 +519,19 @@
         }
 
         .feedback.correct {
-            background-color: #e4f8d3;
-            color: #4a7d1c;
+            background-color: rgba(126, 211, 33, 0.15);
+            color: #6ab71c;
         }
 
         .feedback.incorrect {
-            background-color: #f9d7db;
+            background-color: rgba(208, 2, 27, 0.15);
             color: #a30215;
         }
         
         .explanation-box {
             margin-top: 1.5rem;
             padding: 1.5rem;
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
             border-radius: 8px;
             text-align: left;
             border: 1px solid var(--border-color);
@@ -507,7 +548,7 @@
         }
         
         .eli5-box {
-            background-color: #e9f2fe;
+            background-color: rgba(74, 144, 226, 0.1);
             padding: 1rem;
             margin-top: 1rem;
             border-radius: 8px;
@@ -521,8 +562,8 @@
         }
         
         .eli5-button {
-            background-color: #d1e3f9;
-            color: #357abd;
+            background-color: rgba(74, 144, 226, 0.2);
+            color: var(--primary-color);
             border: none;
             padding: 0.4rem 0.8rem;
             border-radius: 6px;
@@ -606,17 +647,17 @@
         }
         .match-item.selected {
             border-color: var(--primary-color);
-            background-color: #e9f2fe;
+            background-color: rgba(74, 144, 226, 0.1);
         }
         .match-item.matched {
             border-color: var(--success-color);
-            background-color: #e4f8d3;
+            background-color: rgba(126, 211, 33, 0.1);
             cursor: not-allowed;
             opacity: 0.6;
         }
         .match-item.incorrect, .puzzle-item.incorrect {
             border-color: var(--error-color);
-            background-color: #f9d7db;
+            background-color: rgba(208, 2, 27, 0.1);
             animation: shake 0.5s;
         }
         .puzzle-item.correct {
@@ -1034,7 +1075,7 @@
         };
 
         // components/Header.js
-        const Header = ({ activePage, onNavClick, onLogout }) => {
+        const Header = ({ activePage, onNavClick, onLogout, onToggleTheme, theme }) => {
             return (
                 <header className="app-header">
                     <div className="logo">
@@ -1049,7 +1090,12 @@
                         <button className={`nav-button ${activePage === 'puzzle' ? 'active' : ''}`} onClick={() => onNavClick('puzzle')}>Process Puzzle</button>
                         <button className={`nav-button ${activePage === 'challenge' ? 'active' : ''}`} onClick={() => onNavClick('challenge')}>Challenge</button>
                     </nav>
-                    <button className="logout-button" onClick={onLogout}>Logout</button>
+                    <div className="header-actions">
+                        <button onClick={onToggleTheme} className="theme-toggle-button" title="Toggle Theme">
+                            <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'}`}></i>
+                        </button>
+                        <button className="logout-button" onClick={onLogout}>Logout</button>
+                    </div>
                 </header>
             );
         };
@@ -1774,6 +1820,20 @@
             const [activeQuizState, setActiveQuizState] = React.useState(null);
             const [notification, setNotification] = React.useState(null);
             const [loading, setLoading] = React.useState(true);
+            const [theme, setTheme] = React.useState('light');
+
+            React.useEffect(() => {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                setTheme(savedTheme);
+                document.body.className = savedTheme;
+            }, []);
+
+            const toggleTheme = () => {
+                const newTheme = theme === 'light' ? 'dark' : 'light';
+                setTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+                document.body.className = newTheme;
+            };
 
             React.useEffect(() => {
                 const token = localStorage.getItem('authToken');
@@ -1879,7 +1939,7 @@
 
             return (
                 <React.Fragment>
-                    <Header activePage={activePage} onNavClick={setActivePage} onLogout={handleLogout} />
+                    <Header activePage={activePage} onNavClick={setActivePage} onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme} />
                     <main>
                         {renderPage()}
                     </main>
