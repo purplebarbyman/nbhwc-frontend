@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -821,8 +820,13 @@
                 try {
                     const response = await fetch(url, config);
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                        const errorBody = await response.text();
+                        try {
+                            const errorData = JSON.parse(errorBody);
+                            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                        } catch (e) {
+                             throw new Error(errorBody || `HTTP error! status: ${response.status}`);
+                        }
                     }
                     if (response.status === 204) return;
                     return response.json();
@@ -849,9 +853,9 @@
                     window.userData = { mastery: userMastery };
                  }
                  const topicTimeEstimates = {
-                    'Motivational Interviewing': 120, 'SMART Goals': 90, 'HIPAA Basics': 150,
-                    'Coaching Structure': 60, 'Coaching Process': 60, 'Health & Wellness': 60,
-                    'Ethics, Legal & Professional Responsibility': 60
+                    'Motivational Interviewing': 960, 'SMART Goals': 720, 'HIPAA Basics': 1200,
+                    'Coaching Structure': 480, 'Coaching Process': 480, 'Health & Wellness': 480,
+                    'Ethics, Legal & Professional Responsibility': 480
                 };
 
                 const topicsToStudy = Object.keys(topicTimeEstimates)
@@ -1884,21 +1888,14 @@
             };
             
             const handleQuizComplete = async (topic, correctAnswers, totalQuestions) => {
-                const score = (correctAnswers / totalQuestions) * 100;
-                // This part would eventually be a real API call
-                const result = await mockApi.recordQuizCompletion(topic, score, correctAnswers, totalQuestions);
-                
-                const updatedUserData = { ...userData,
-                    stats: result.newStats,
-                    mastery: result.newMastery,
-                    unlockedAchievements: window.userData.unlockedAchievements
-                };
-                setUserData(updatedUserData);
-
-                if (result.newlyUnlocked.length > 0) {
-                    setNotification(result.newlyUnlocked[0]);
+                try {
+                    await apiClient.submitQuiz({ topic, correctAnswers, totalQuestions });
+                    const data = await apiClient.getUserData(); // Refetch data to get updated stats
+                    setUserData(data);
+                } catch (error) {
+                    console.error("Failed to submit quiz results:", error);
                 }
-                setActivePage('plan');
+                setActivePage('dashboard');
             };
 
             const handlePlanGenerated = (plan) => {
@@ -1919,6 +1916,8 @@
                         return <StudyPlanPage userData={userData} onStartQuiz={handleStartQuiz} onPlanGenerated={handlePlanGenerated} />;
                     case 'quiz':
                         return <Quiz quizState={activeQuizState} onQuizComplete={handleQuizComplete} />;
+                    case 'analytics':
+                        return <AnalyticsPage />;
                     case 'scenarios':
                         return <Scenario onScenarioComplete={() => setActivePage('dashboard')} />;
                     case 'flashcards':
