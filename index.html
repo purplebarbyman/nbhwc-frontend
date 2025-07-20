@@ -1429,7 +1429,7 @@
                     if (initialTopic) {
                         const matchingDeck = data.find(d => d.name === initialTopic);
                         if (matchingDeck) {
-                            handleDeckSelect(matchingDeck.id);
+                            handleDeckSelect(matchingDeck);
                         } else {
                             setLoading(false);
                         }
@@ -1439,10 +1439,10 @@
                 });
             }, [initialTopic]);
 
-            const handleDeckSelect = (deckId) => {
+            const handleDeckSelect = (deck) => {
                 setLoading(true);
-                apiClient.getFlashcards(deckId).then(data => {
-                    setSelectedDeck(decks.find(d => d.id === deckId));
+                apiClient.getFlashcards(deck.id).then(data => {
+                    setSelectedDeck(deck);
                     setCards(data);
                     setMode('classic');
                     setLoading(false);
@@ -1486,7 +1486,7 @@
                     <div className="interactive-container">
                         <div className="interactive-header"><h2>Flashcard Decks</h2><p>Select a topic to start studying.</p></div>
                         <div className="options-grid">
-                            {decks.map(deck => (<button key={deck.id} className="option-button" onClick={() => handleDeckSelect(deck.id)}>{deck.name}</button>))}
+                            {decks.map(deck => (<button key={deck.id} className="option-button" onClick={() => handleDeckSelect(deck)}>{deck.name}</button>))}
                         </div>
                     </div>
                 );
