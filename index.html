@@ -845,6 +845,7 @@
             getFlashcards: (deckId) => apiClient.request(`/flashcards/decks/${deckId}`),
             submitQuiz: (results) => apiClient.request('/quizzes/submit', 'POST', results),
             getMasteryTrend: (topic) => apiClient.request(`/analytics/mastery-trend?topic=${encodeURIComponent(topic)}`),
+            saveStudyPlan: (planData) => apiClient.request('/study-plan', 'POST', planData),
         };
         
         // This mockApi remains for features not yet built on the backend.
@@ -863,7 +864,6 @@
                     .map(topic => {
                         const mastery = userMastery[topic] || 0;
                         let timeNeeded = topicTimeEstimates[topic] * (1 - mastery / 100);
-                        // Apply a 25% time boost to the focus area
                         if (topic === focusArea) {
                             timeNeeded *= 1.25;
                         }
@@ -871,7 +871,6 @@
                     })
                     .filter(t => t.timeNeeded > 0)
                     .sort((a, b) => {
-                        // Prioritize focus area, then lowest mastery
                         if (a.topic === focusArea) return -1;
                         if (b.topic === focusArea) return 1;
                         return (userMastery[a.topic] || 0) - (userMastery[b.topic] || 0);
@@ -891,8 +890,10 @@
                             const currentTopic = topicsToStudy[topicIndex];
                             const timeToAllocate = Math.min(currentTopic.timeNeeded, dailyMinutesAvailable - minutesForDay, 60);
                             
+                            const taskType = Math.random() > 0.3 ? 'quiz' : 'flashcards'; // Add variety
+                            
                             plan[dateString].push({
-                                type: 'quiz', name: `Practice: ${currentTopic.topic}`,
+                                type: taskType, name: `${taskType === 'quiz' ? 'Practice' : 'Review'}: ${currentTopic.topic}`,
                                 time: `${Math.round(timeToAllocate)} min`, topic: currentTopic.topic
                             });
                             
@@ -905,8 +906,6 @@
                     if (currentDate > new Date(examDate)) break;
                 }
                 
-                window.userData.planSettings = { examDate, hoursPerWeek, focusArea };
-                window.userData.personalizedPlan = plan;
                 setTimeout(() => resolve(plan), 1000);
             }),
             
@@ -1212,6 +1211,7 @@
             const handleGeneratePlan = async () => {
                 setLoading(true);
                 const plan = await mockApi.generatePersonalizedPlan({ ...settings, userMastery });
+                await apiClient.saveStudyPlan({ settings, plan });
                 onPlanGenerated(plan);
                 setLoading(false);
             };
