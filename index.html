@@ -1409,7 +1409,7 @@
         };
         
         // components/Flashcards.js
-        const Flashcards = () => {
+        const Flashcards = ({ initialTopic }) => {
             const [decks, setDecks] = React.useState([]);
             const [selectedDeck, setSelectedDeck] = React.useState(null);
             const [cards, setCards] = React.useState([]);
@@ -1426,9 +1426,18 @@
             React.useEffect(() => {
                 apiClient.getFlashcardDecks().then(data => {
                     setDecks(data);
-                    setLoading(false);
+                    if (initialTopic) {
+                        const matchingDeck = data.find(d => d.name === initialTopic);
+                        if (matchingDeck) {
+                            handleDeckSelect(matchingDeck.id);
+                        } else {
+                            setLoading(false);
+                        }
+                    } else {
+                        setLoading(false);
+                    }
                 });
-            }, []);
+            }, [initialTopic]);
 
             const handleDeckSelect = (deckId) => {
                 setLoading(true);
@@ -1832,6 +1841,7 @@
             const [notification, setNotification] = React.useState(null);
             const [loading, setLoading] = React.useState(true);
             const [theme, setTheme] = React.useState('light');
+            const [initialFlashcardTopic, setInitialFlashcardTopic] = React.useState(null);
 
             React.useEffect(() => {
                 const savedTheme = localStorage.getItem('theme') || 'light';
@@ -1889,6 +1899,11 @@
                 setActivePage('quiz');
             };
             
+            const handleStartFlashcards = (topic) => {
+                setInitialFlashcardTopic(topic);
+                setActivePage('flashcards');
+            };
+            
             const handleQuizComplete = async (topic, correctAnswers, totalQuestions) => {
                 try {
                     await apiClient.submitQuiz({ topic, correctAnswers, totalQuestions });
@@ -1915,7 +1930,7 @@
                     case 'dashboard':
                         return <Dashboard userData={userData} onStartQuiz={handleStartQuiz} />;
                     case 'plan':
-                        return <StudyPlanPage userData={userData} onStartQuiz={handleStartQuiz} onPlanGenerated={handlePlanGenerated} />;
+                        return <StudyPlanPage userData={userData} onStartQuiz={handleStartQuiz} onPlanGenerated={handlePlanGenerated} onStartFlashcards={handleStartFlashcards} />;
                     case 'quiz':
                         return <Quiz quizState={activeQuizState} onQuizComplete={handleQuizComplete} />;
                     case 'analytics':
@@ -1923,7 +1938,7 @@
                     case 'scenarios':
                         return <Scenario onScenarioComplete={() => setActivePage('dashboard')} />;
                     case 'flashcards':
-                        return <Flashcards />;
+                        return <Flashcards initialTopic={initialFlashcardTopic} />;
                     case 'puzzle':
                         return <ProcessPuzzle />;
                     case 'challenge':
