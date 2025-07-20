@@ -1150,7 +1150,7 @@
 
 
         // components/StudyPlan.js
-        const StudyPlanPage = ({ userData, onStartQuiz, onPlanGenerated }) => {
+        const StudyPlanPage = ({ userData, onStartQuiz, onPlanGenerated, onStartFlashcards }) => {
             const [plan, setPlan] = React.useState(userData.personalizedPlan);
             
             const handlePlanGenerated = (newPlan) => {
@@ -1164,13 +1164,13 @@
             };
             
             if (plan) {
-                return <StudyPlanDisplay plan={plan} onStartQuiz={onStartQuiz} onRegenerate={handleRegenerate} />;
+                return <StudyPlanDisplay plan={plan} onStartQuiz={onStartQuiz} onStartFlashcards={onStartFlashcards} onRegenerate={handleRegenerate} />;
             } else {
                 return <PlanSetup userMastery={userData.mastery} onPlanGenerated={handlePlanGenerated} />;
             }
         };
 
-        const StudyPlanDisplay = ({ plan, onStartQuiz, onRegenerate }) => {
+        const StudyPlanDisplay = ({ plan, onStartQuiz, onStartFlashcards, onRegenerate }) => {
             return (
                 <div className="study-plan-container">
                     <div className="dashboard-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -1182,11 +1182,12 @@
                             <div key={day} className="timeline-day">
                                 <h3>{new Date(day + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
                                 <ul className="task-list">
-                                    {tasks.map(task => (
-                                        <li key={task.name} className="task-item">
+                                    {tasks.map((task, index) => (
+                                        <li key={`${task.name}-${index}`} className="task-item">
                                             <i className={mockApi.taskIcons[task.type]}></i>
                                             <div className="task-details"><div className="task-name">{task.name}</div><div className="task-time">{task.time}</div></div>
                                             {task.type === 'quiz' && (<button className="quiz-button" onClick={() => onStartQuiz(task.topic, parseInt(task.time))}>Take Quiz</button>)}
+                                            {task.type === 'flashcards' && (<button className="quiz-button" onClick={() => onStartFlashcards(task.topic)}>Review Cards</button>)}
                                         </li>
                                     ))}
                                 </ul>
